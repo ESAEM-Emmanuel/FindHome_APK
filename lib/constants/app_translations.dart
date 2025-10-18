@@ -51,7 +51,7 @@ class AppTranslations {
       'register_button': 'INSCRIPTION',
       'forgot_password_title': 'Mot de Passe Oublié',
       'forgot_password_instruction': 'Entrez votre adresse email ci-dessous pour recevoir un lien de réinitialisation de mot de passe.',
-      'send_reset_link': 'ENVOYER LE LIEN DE RÉINITIALISATION',
+      'send_reset_link': 'ENVOYER LE LIEN',
       'search_placeholder': 'Rechercher un logement...',
       'no_properties': 'Aucune propriété trouvée pour l\'instant.',
       'features': 'Équipements',

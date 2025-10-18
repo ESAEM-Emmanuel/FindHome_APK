@@ -98,14 +98,46 @@ class AuthService {
   }
 
   // --- Mot de passe oublié ---
+  // Future<void> forgotPassword(String email) async {
+  //   final response = await http.post(
+  //     Uri.parse('$baseUrl/forgot-password?email=$email'),
+  //     headers: {'Accept': 'application/json'},
+  //   );
+
+  //   if (response.statusCode != 200) {
+  //      throw Exception('Échec de l\'envoi de l\'email: ${response.body}');
+  //   }
+  // }
   Future<void> forgotPassword(String email) async {
+    // 1. Utiliser le chemin d'API correct : /auth/forgot_password
+    final url = Uri.parse('$baseUrl/auth/forgot_password');
+    
     final response = await http.post(
-      Uri.parse('$baseUrl/forgot-password?email=$email'),
-      headers: {'Accept': 'application/json'},
+      url,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json', // Indispensable pour envoyer du JSON
+      },
+      // 2. Envoyer l'email dans le corps de la requête JSON
+      body: json.encode({
+        'email': email, 
+      }),
     );
 
-    if (response.statusCode != 200) {
-       throw Exception('Échec de l\'envoi de l\'email: ${response.body}');
+    if (response.statusCode == 200) {
+      // Succès: L'email a été envoyé
+      return;
+    } else {
+      // Échec: Tente d'extraire le message d'erreur du corps de la réponse si disponible
+      String errorMessage = 'Échec de l\'envoi de l\'email (Code: ${response.statusCode})';
+      try {
+        final errorData = json.decode(response.body);
+        // Cela dépend de la structure de l'erreur renvoyée par votre backend (par exemple FastAPI)
+        errorMessage = errorData['detail'] ?? errorData['message'] ?? errorMessage; 
+      } catch (e) {
+        // Ignorer l'erreur de décodage si le corps n'est pas JSON
+      }
+      throw Exception(errorMessage);
     }
   }
 
