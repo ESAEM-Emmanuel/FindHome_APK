@@ -1,9 +1,10 @@
+// // lib/main.dart
 // import 'package:flutter/material.dart';
 // import 'package:camera/camera.dart';
 // import 'package:provider/provider.dart';
 // import 'package:flutter_localizations/flutter_localizations.dart';
 
-// // Imports de vos fichiers (ajustez les chemins si besoin)
+// // Imports de vos fichiers
 // import 'pages/camera_page.dart';
 // import 'pages/market_page.dart';
 // import 'pages/home_page.dart';
@@ -16,14 +17,11 @@
 // import 'providers/auth_provider.dart';
 // import 'providers/settings_provider.dart';
 // import 'constants/app_themes.dart';
-// import 'constants/app_translations.dart'; // Import corrigé
-
-// // NOTE : La couleur accent est désormais gérée par Theme.of(context).colorScheme.secondary
+// import 'constants/app_translations.dart';
 
 // Future<void> main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
   
-//   // 1. Initialisation des caméras (gestion d'erreur incluse)
 //   List<CameraDescription> cameras = [];
 //   try {
 //     cameras = await availableCameras();
@@ -31,7 +29,6 @@
 //     debugPrint('Erreur lors de l\'initialisation des caméras: $e');
 //   }
 
-//   // 2. Lancement de l'application avec MultiProvider
 //   final authProvider = AuthProvider();
 
 //   runApp(
@@ -55,14 +52,12 @@
 
 //     return MaterialApp(
 //       debugShowCheckedModeBanner: false,
-//       title: 'Find-Home App',
+//       title: 'B-to-B App',
       
-//       // --- Gestion du Thème ---
 //       theme: AppThemes.lightTheme,
 //       darkTheme: AppThemes.darkTheme,
 //       themeMode: settingsProvider.themeMode,
 
-//       // --- Gestion de la Localisation ---
 //       locale: settingsProvider.locale,
 //       supportedLocales: const [
 //         Locale('en', 'US'),
@@ -74,21 +69,18 @@
 //         GlobalCupertinoLocalizations.delegate,
 //       ],
       
-//       // --- Configuration des Routes Nommées (Corrigé) ---
 //       initialRoute: '/',
 //       routes: {
-//         '/': (context) => _AuthWrapper(cameras: cameras), 
+//         '/': (context) => MainScreen(cameras: cameras),
+//         '/login': (context) => const LoginPage(),
 //         '/register': (context) => const RegisterPage(),
 //         '/forgot-password': (context) => const ForgotPasswordPage(),
         
-//         // ✅ CORRECTION du routage de PropertyDetailPage: 
-//         // Récupération et passage de l'argument 'id' requis
 //         '/property-detail': (context) {
 //           final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
 //           final propertyId = args?['id'];
 
 //           if (propertyId == null) {
-//             // Affiche une erreur si l'ID n'a pas été passé
 //             return const Scaffold(
 //               body: Center(child: Text('Erreur de navigation: ID de propriété manquant')),
 //             );
@@ -96,35 +88,6 @@
           
 //           return PropertyDetailPage(propertyId: propertyId);
 //         },
-//       },
-//     );
-//   }
-// }
-
-// // ----------------------------------------------------------------------
-// // AUTHENTICATION WRAPPER
-// // ----------------------------------------------------------------------
-
-// class _AuthWrapper extends StatelessWidget {
-//   final List<CameraDescription> cameras;
-//   const _AuthWrapper({required this.cameras});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Consumer<AuthProvider>(
-//       builder: (context, authProvider, child) {
-//         if (authProvider.isLoading) {
-//           return const Scaffold(
-//             body: Center(child: CircularProgressIndicator()),
-//           );
-//         }
-        
-//         // Redirige vers MainScreen si connecté, sinon vers LoginPage
-//         if (authProvider.isLoggedIn) {
-//           return MainScreen(cameras: cameras);
-//         } else {
-//           return const LoginPage();
-//         }
 //       },
 //     );
 //   }
@@ -145,16 +108,201 @@
 // class _MainScreenState extends State<MainScreen> {
 //   int _currentIndex = 0;
 
+//   // ✅ MÉTHODE POUR GÉRER LA DÉCONNEXION
+//   Future<void> _handleLogout(BuildContext context, Locale locale) async {
+//     // Ferme le dialogue de confirmation si ouvert
+//     if (Navigator.of(context).canPop()) {
+//       Navigator.of(context).pop();
+//     }
+    
+//     try {
+//       // Déconnexion via le provider
+//       await Provider.of<AuthProvider>(context, listen: false).logout();
+      
+//       // ✅ FORCE LE RETOUR À LA HOMEPAGE
+//       if (mounted) {
+//         setState(() {
+//           _currentIndex = 0; // Retour à l'onglet Home
+//         });
+//       }
+      
+//       // Feedback utilisateur
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: Text(AppTranslations.get('logout_success', locale, 'Déconnexion réussie')),
+//             backgroundColor: AppThemes.getSuccessColor(context),
+//             duration: const Duration(seconds: 2),
+//           ),
+//         );
+//       }
+//     } catch (e) {
+//       // Gestion des erreurs de déconnexion
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: Text('${AppTranslations.get('logout_error', locale, 'Erreur lors de la déconnexion')}: $e'),
+//             backgroundColor: AppThemes.getErrorColor(context),
+//             duration: const Duration(seconds: 3),
+//           ),
+//         );
+//       }
+//     }
+//   }
+
+//   // ✅ WIDGET FUSIONNÉ POUR L'ÉTAT UTILISATEUR ET LANGUE
+//   Widget _buildUserAndLanguageStatus(BuildContext context, Locale locale) {
+//     final authProvider = Provider.of<AuthProvider>(context);
+    
+//     return Row(
+//       children: [
+//         // Conteneur principal avec toutes les informations
+//         Container(
+//           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//           decoration: BoxDecoration(
+//             color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+//             borderRadius: BorderRadius.circular(20),
+//           ),
+//           child: Row(
+//             children: [
+//               // Photo de profil ou icône
+//               authProvider.isLoggedIn && authProvider.currentUser?.image != null && authProvider.currentUser!.image!.isNotEmpty
+//                   ? CircleAvatar(
+//                       radius: 12,
+//                       backgroundImage: NetworkImage(authProvider.currentUser!.image!),
+//                     )
+//                   : Icon(
+//                       authProvider.isLoggedIn ? Icons.person : Icons.person_outline,
+//                       size: 16,
+//                       color: Theme.of(context).colorScheme.secondary,
+//                     ),
+              
+//               const SizedBox(width: 8),
+              
+//               // Nom d'utilisateur ou statut invité
+//               Text(
+//                 authProvider.isLoggedIn 
+//                   ? authProvider.currentUser?.username ?? 'Utilisateur'
+//                   : AppTranslations.get('guest', locale, 'Invité'),
+//                 style: TextStyle(
+//                   fontSize: 12,
+//                   fontWeight: FontWeight.w500,
+//                   color: Theme.of(context).colorScheme.secondary,
+//                 ),
+//               ),
+              
+//             ],
+//           ),
+//         ),
+        
+//         const SizedBox(width: 8),
+        
+//         // Bouton de menu utilisateur (seulement si connecté) ou connexion
+//         // if (authProvider.isLoggedIn) ...[
+//         //   PopupMenuButton<String>(
+//         //     icon: Container(
+//         //       padding: const EdgeInsets.all(6),
+//         //       decoration: BoxDecoration(
+//         //         color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+//         //         shape: BoxShape.circle,
+//         //       ),
+//         //       child: Icon(
+//         //         Icons.more_vert,
+//         //         size: 18,
+//         //         color: Theme.of(context).colorScheme.secondary,
+//         //       ),
+//         //     ),
+//         //     onSelected: (value) {
+//         //       if (value == 'logout') {
+//         //         _showLogoutConfirmation(context, locale);
+//         //       } else if (value == 'profile') {
+//         //         ScaffoldMessenger.of(context).showSnackBar(
+//         //           SnackBar(
+//         //             content: Text(AppTranslations.get('profile_coming_soon', locale, 'Profil - Bientôt disponible')),
+//         //             backgroundColor: AppThemes.getSuccessColor(context),
+//         //           ),
+//         //         );
+//         //       }
+//         //     },
+//         //     itemBuilder: (BuildContext context) => [
+//         //       PopupMenuItem(
+//         //         value: 'profile',
+//         //         child: Row(
+//         //           children: [
+//         //             Icon(Icons.person, size: 20, color: Theme.of(context).colorScheme.secondary),
+//         //             const SizedBox(width: 8),
+//         //             Text(AppTranslations.get('profile', locale, 'Profil')),
+//         //           ],
+//         //         ),
+//         //       ),
+//         //       const PopupMenuDivider(),
+//         //       PopupMenuItem(
+//         //         value: 'logout',
+//         //         child: Row(
+//         //           children: [
+//         //             Icon(Icons.logout, size: 20, color: Theme.of(context).colorScheme.error),
+//         //             const SizedBox(width: 8),
+//         //             Text(
+//         //               AppTranslations.get('logout', locale, 'Déconnexion'),
+//         //               style: TextStyle(color: Theme.of(context).colorScheme.error),
+//         //             ),
+//         //           ],
+//         //         ),
+//         //       ),
+//         //     ],
+//         //   ),
+//         // ] else ...[
+//         //   // Bouton de connexion si non connecté
+//         //   IconButton(
+//         //     icon: Icon(
+//         //       Icons.login,
+//         //       size: 20,
+//         //       color: Theme.of(context).colorScheme.secondary,
+//         //     ),
+//         //     tooltip: AppTranslations.get('login_tooltip', locale, 'Se connecter'),
+//         //     onPressed: () {
+//         //       Navigator.of(context).pushNamed('/login');
+//         //     }, 
+//         //   ),
+//         // ],
+//       ],
+//     );
+//   }
+
+//   // Dialogue de confirmation pour la déconnexion
+//   void _showLogoutConfirmation(BuildContext context, Locale locale) {
+//     showDialog(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return AlertDialog(
+//           title: Text(AppTranslations.get('logout_confirmation', locale, 'Déconnexion')),
+//           content: Text(AppTranslations.get('logout_confirmation_message', locale, 'Êtes-vous sûr de vouloir vous déconnecter ?')),
+//           actions: [
+//             TextButton(
+//               onPressed: () => Navigator.of(context).pop(),
+//               child: Text(AppTranslations.get('cancel', locale, 'Annuler')),
+//             ),
+//             ElevatedButton(
+//               style: ElevatedButton.styleFrom(
+//                 backgroundColor: Theme.of(context).colorScheme.error,
+//               ),
+//               onPressed: () => _handleLogout(context, locale),
+//               child: Text(
+//                 AppTranslations.get('logout', locale, 'Déconnexion'),
+//                 style: TextStyle(color: Theme.of(context).colorScheme.onError),
+//               ),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+
 //   @override
 //   Widget build(BuildContext context) {
 //     final locale = Provider.of<SettingsProvider>(context).locale;
-//     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-//     // Définition de la couleur accent via le thème
 //     final Color accentColor = Theme.of(context).colorScheme.secondary;
 
-//     // ✅ Les appels à AppTranslations.get() n'incluent plus l'argument de valeur par défaut
-//     // (cela est géré interne à la fonction dans le fichier constants/app_translations.dart)
 //     final List<String> titles = [
 //       AppTranslations.get('home', locale), 
 //       AppTranslations.get('markets', locale),
@@ -169,30 +317,53 @@
 
 //     return Scaffold(
 //       appBar: AppBar(
-//         title: Text(titles[_currentIndex]), 
+//         title: Row(
+//           children: [
+//             // ✅ ÉLÉMENT FUSIONNÉ : Statut utilisateur + actions
+//             _buildUserAndLanguageStatus(context, locale),
+//             Expanded(
+//               child: Text(titles[_currentIndex]),
+//             ),
+//           ],
+//         ),
 //         actions: [
-//           // Bouton de déconnexion
-//           IconButton(
-//             icon: const Icon(Icons.logout),
-//             tooltip: AppTranslations.get('logout_tooltip', locale),
-//             onPressed: authProvider.logout, 
+//           // ✅ BOUTON DE CHANGEMENT DE LANGUE AVEC INDICATEUR DIRECT
+//           Container(
+//             margin: const EdgeInsets.symmetric(horizontal: 4),
+//             child: ElevatedButton(
+//               onPressed: () {
+//                 final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+//                 final newLocale = settingsProvider.locale.languageCode == 'fr' 
+//                     ? const Locale('en', 'US') 
+//                     : const Locale('fr', 'FR');
+//                 settingsProvider.setLocale(newLocale);
+//               },
+//               style: ElevatedButton.styleFrom(
+//                 backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+//                 foregroundColor: Theme.of(context).colorScheme.primary,
+//                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(16),
+//                 ),
+//                 elevation: 0,
+//                 shadowColor: Colors.transparent,
+//               ),
+//               child: Text(
+//                 locale.languageCode.toUpperCase(),
+//                 style: TextStyle(
+//                   fontSize: 12,
+//                   fontWeight: FontWeight.bold,
+//                   color: Theme.of(context).colorScheme.primary,
+//                 ),
+//               ),
+//             ),
 //           ),
-//           // Bouton de changement de langue
-//           IconButton(
-//             icon: const Icon(Icons.language),
-//             onPressed: () {
-//               final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-//               final newLocale = settingsProvider.locale.languageCode == 'fr' 
-//                   ? const Locale('en', 'US') 
-//                   : const Locale('fr', 'FR');
-//               settingsProvider.setLocale(newLocale);
-//             },
-//           ),
+          
 //           // Bouton de changement de thème
 //           IconButton(
 //             icon: Provider.of<SettingsProvider>(context).themeMode == ThemeMode.light 
-//                   ? const Icon(Icons.light_mode) 
-//                   : const Icon(Icons.dark_mode),
+//                   ? Icon(Icons.light_mode, color: Theme.of(context).colorScheme.secondary)
+//                   : Icon(Icons.dark_mode, color: Theme.of(context).colorScheme.secondary),
 //             onPressed: () {
 //               final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
 //               final newTheme = settingsProvider.themeMode == ThemeMode.light 
@@ -208,7 +379,6 @@
 //       bottomNavigationBar: BottomNavigationBar(
 //         currentIndex: _currentIndex,
 //         onTap: (index) => setState(() => _currentIndex = index),
-//         // ✅ Utilisation de la couleur accent du thème
 //         selectedItemColor: accentColor, 
 //         unselectedItemColor: Theme.of(context).hintColor, 
 //         backgroundColor: Theme.of(context).cardColor, 
@@ -232,6 +402,8 @@
 //     );
 //   }
 // }
+
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
@@ -285,7 +457,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Find-Home App',
+      title: 'B-to-B App',
       
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
@@ -304,8 +476,8 @@ class MyApp extends StatelessWidget {
       
       initialRoute: '/',
       routes: {
-        '/': (context) => MainScreen(cameras: cameras), // ✅ TOUJOURS HomePage
-        '/login': (context) => const LoginPage(), // ✅ Route séparée pour login
+        '/': (context) => MainScreen(cameras: cameras),
+        '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/forgot-password': (context) => const ForgotPasswordPage(),
         
@@ -327,7 +499,7 @@ class MyApp extends StatelessWidget {
 }
 
 // ----------------------------------------------------------------------
-// MAIN APPLICATION SCREEN (MODIFIÉ)
+// MAIN APPLICATION SCREEN
 // ----------------------------------------------------------------------
 
 class MainScreen extends StatefulWidget {
@@ -341,11 +513,240 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  // ✅ MÉTHODE POUR GÉRER LA DÉCONNEXION
+  Future<void> _handleLogout(BuildContext context, Locale locale) async {
+    // Ferme le dialogue de confirmation si ouvert
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+    
+    try {
+      // Déconnexion via le provider
+      await Provider.of<AuthProvider>(context, listen: false).logout();
+      
+      // ✅ FORCE LE RETOUR À LA HOMEPAGE
+      if (mounted) {
+        setState(() {
+          _currentIndex = 0; // Retour à l'onglet Home
+        });
+      }
+      
+      // Feedback utilisateur
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppTranslations.get('logout_success', locale, 'Déconnexion réussie')),
+            backgroundColor: AppThemes.getSuccessColor(context),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Gestion des erreurs de déconnexion
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${AppTranslations.get('logout_error', locale, 'Erreur lors de la déconnexion')}: $e'),
+            backgroundColor: AppThemes.getErrorColor(context),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // ✅ WIDGET FUSIONNÉ POUR L'ÉTAT UTILISATEUR
+  Widget _buildUserAndLanguageStatus(BuildContext context, Locale locale) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Photo de profil ou icône
+          authProvider.isLoggedIn && authProvider.currentUser?.image != null && authProvider.currentUser!.image!.isNotEmpty
+              ? CircleAvatar(
+                  radius: 14,
+                  backgroundImage: NetworkImage(authProvider.currentUser!.image!),
+                )
+              : Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    authProvider.isLoggedIn ? Icons.person : Icons.person_outline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                ),
+          
+          const SizedBox(width: 8),
+          
+          // Nom d'utilisateur ou statut invité
+          Text(
+            authProvider.isLoggedIn 
+              ? authProvider.currentUser?.username ?? 'Utilisateur'
+              : AppTranslations.get('guest', locale, 'Invité'),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+          
+          const SizedBox(width: 8),
+          
+          // Menu déroulant ou bouton de connexion
+          if (authProvider.isLoggedIn) ...[
+            PopupMenuButton<String>(
+              icon: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.more_vert,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+              offset: const Offset(0, 45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 1,
+                ),
+              ),
+              onSelected: (value) {
+                if (value == 'logout') {
+                  _showLogoutConfirmation(context, locale);
+                } else if (value == 'profile') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppTranslations.get('profile_coming_soon', locale, 'Profil - Bientôt disponible')),
+                      backgroundColor: AppThemes.getSuccessColor(context),
+                    ),
+                  );
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem(
+                  value: 'profile',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, size: 20, color: Theme.of(context).colorScheme.secondary),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppTranslations.get('profile', locale, 'Profil'),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, size: 20, color: Theme.of(context).colorScheme.error),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppTranslations.get('logout', locale, 'Déconnexion'),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Bouton de connexion si non connecté - intégré dans le conteneur
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pushNamed('/login');
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.login,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      AppTranslations.get('login', locale, 'Connexion'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Dialogue de confirmation pour la déconnexion
+  void _showLogoutConfirmation(BuildContext context, Locale locale) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppTranslations.get('logout_confirmation', locale, 'Déconnexion')),
+          content: Text(AppTranslations.get('logout_confirmation_message', locale, 'Êtes-vous sûr de vouloir vous déconnecter ?')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(AppTranslations.get('cancel', locale, 'Annuler')),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              onPressed: () => _handleLogout(context, locale),
+              child: Text(
+                AppTranslations.get('logout', locale, 'Déconnexion'),
+                style: TextStyle(color: Theme.of(context).colorScheme.onError),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = Provider.of<SettingsProvider>(context).locale;
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
     final Color accentColor = Theme.of(context).colorScheme.secondary;
 
     final List<String> titles = [
@@ -362,44 +763,53 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[_currentIndex]), 
-        actions: [
-          // ✅ BOUTON DE CONNEXION/DÉCONNEXION DYNAMIQUE
-          if (authProvider.isLoggedIn) ...[
-            // Utilisateur connecté - bouton déconnexion
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: AppTranslations.get('logout_tooltip', locale),
-              onPressed: authProvider.logout, 
-            ),
-          ] else ...[
-            // Utilisateur non connecté - bouton connexion
-            IconButton(
-              icon: const Icon(Icons.login),
-              tooltip: AppTranslations.get('login_tooltip', locale),
-              onPressed: () {
-                Navigator.of(context).pushNamed('/login');
-              }, 
+        title: Row(
+          children: [
+            // ✅ ÉLÉMENT FUSIONNÉ : Statut utilisateur
+            _buildUserAndLanguageStatus(context, locale),
+            Expanded(
+              child: Text(titles[_currentIndex]),
             ),
           ],
-          
-          // Bouton de changement de langue
-          IconButton(
-            icon: const Icon(Icons.language),
-            onPressed: () {
-              final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-              final newLocale = settingsProvider.locale.languageCode == 'fr' 
-                  ? const Locale('en', 'US') 
-                  : const Locale('fr', 'FR');
-              settingsProvider.setLocale(newLocale);
-            },
+        ),
+        actions: [
+          // ✅ BOUTON DE CHANGEMENT DE LANGUE AVEC INDICATEUR DIRECT
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            child: ElevatedButton(
+              onPressed: () {
+                final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+                final newLocale = settingsProvider.locale.languageCode == 'fr' 
+                    ? const Locale('en', 'US') 
+                    : const Locale('fr', 'FR');
+                settingsProvider.setLocale(newLocale);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+                shadowColor: Colors.transparent,
+              ),
+              child: Text(
+                locale.languageCode.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
           ),
           
           // Bouton de changement de thème
           IconButton(
             icon: Provider.of<SettingsProvider>(context).themeMode == ThemeMode.light 
-                  ? const Icon(Icons.light_mode) 
-                  : const Icon(Icons.dark_mode),
+                  ? Icon(Icons.light_mode, color: Theme.of(context).colorScheme.secondary)
+                  : Icon(Icons.dark_mode, color: Theme.of(context).colorScheme.secondary),
             onPressed: () {
               final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
               final newTheme = settingsProvider.themeMode == ThemeMode.light 
