@@ -17,7 +17,6 @@
 // class Town {
 //   final String id;
 //   final String name;
-//   // Country est omis pour la simplicité, mais peut être ajouté si nécessaire
 
 //   Town({required this.id, required this.name});
 
@@ -25,6 +24,32 @@
 //     return Town(
 //       id: json['id'] as String,
 //       name: json['name'] as String,
+//     );
+//   }
+// }
+
+// class Favorite {
+//   final String id;
+//   final String propertyId;
+//   final String createdById;
+//   final String refNumber;
+//   final bool active;
+
+//   Favorite({
+//     required this.id,
+//     required this.propertyId,
+//     required this.createdById,
+//     required this.refNumber,
+//     required this.active,
+//   });
+
+//   factory Favorite.fromJson(Map<String, dynamic> json) {
+//     return Favorite(
+//       id: json['id'] as String,
+//       propertyId: json['property_id'] as String,
+//       createdById: json['created_by'] as String,
+//       refNumber: json['refnumber'] as String? ?? 'N/A',
+//       active: json['active'] as bool? ?? true,
 //     );
 //   }
 // }
@@ -45,6 +70,18 @@
 //   final Town town;
 //   final Category category;
 
+//   // Champs de détail supplémentaires (utilisés dans PropertyDetailPage)
+//   final String refNumber;
+//   final int livingRoomsNb;
+//   final bool hasInternalKitchen;
+//   final bool hasExternalKitchen;
+//   final bool hasAParking;
+//   final bool hasAirConditioning;
+//   final bool hasSecurityGuards;
+//   final bool hasBalcony;
+  
+//   // NOTE: Les champs 'nb_visite' et 'compartment_number' sont ignorés pour la simplicité de ce modèle.
+
 //   Property({
 //     required this.id,
 //     required this.title,
@@ -60,33 +97,78 @@
 //     required this.status,
 //     required this.town,
 //     required this.category,
+//     // Champs de détail
+//     required this.refNumber,
+//     required this.livingRoomsNb,
+//     required this.hasInternalKitchen,
+//     required this.hasExternalKitchen,
+//     required this.hasAParking,
+//     required this.hasAirConditioning,
+//     required this.hasSecurityGuards,
+//     required this.hasBalcony,
 //   });
 
 //   factory Property.fromJson(Map<String, dynamic> json) {
-//     // Gestion de la liste d'images (peut être null ou vide dans l'API)
+//     // 1. Gestion des listes d'images
 //     List<dynamic> otherImagesJson = json['other_images'] ?? [];
-//     List<String> otherImages = otherImagesJson.map((e) => e.toString()).toList();
+//     List<String> otherImages = otherImagesJson
+//         .where((e) => e != null) // Assure qu'aucun élément null ne passe
+//         .map((e) => e.toString())
+//         .toList();
+
+//     // 2. Gestion robuste des champs numériques/booléens (pour List ET Detail)
+//     final price = (json['monthly_price'] as num?)?.toInt() ?? 0;
+//     final areaValue = (json['area'] as num?)?.toInt() ?? 0;
+//     final rooms = (json['rooms_nb'] as num?)?.toInt() ?? 0;
+//     final bathrooms = (json['bathrooms_nb'] as num?)?.toInt() ?? 0;
+    
+//     // Ces champs peuvent être absents dans la réponse de la LISTE, d'où les valeurs par défaut.
+//     final livingRooms = (json['living_rooms_nb'] as num?)?.toInt() ?? 0; 
+    
+//     final isCertified = json['certified'] as bool? ?? false;
+//     final hasIntKitchen = json['has_internal_kitchen'] as bool? ?? false;
+//     final hasExtKitchen = json['has_external_kitchen'] as bool? ?? false;
+//     final hasParking = json['has_a_parking'] as bool? ?? false;
+//     final hasAC = json['has_air_conditioning'] as bool? ?? false;
+//     final hasSecurity = json['has_security_guards'] as bool? ?? false;
+//     final hasBaly = json['has_balcony'] as bool? ?? false;
+
+//     // La description peut être longue ou manquante dans la liste, on la laisse telle quelle
+//     final descriptionValue = json['description'] as String? ?? 'Description non disponible.';
 
 //     return Property(
 //       id: json['id'] as String,
 //       title: json['title'] as String,
-//       description: json['description'] as String,
-//       address: json['address'] as String,
-//       monthlyPrice: json['monthly_price'] as int,
-//       area: json['area'] as int,
-//       roomsNb: json['rooms_nb'] as int,
-//       bathroomsNb: json['bathrooms_nb'] as int,
-//       mainImage: json['main_image'] as String,
+//       description: descriptionValue,
+//       address: json['address'] as String? ?? 'Adresse non spécifiée',
+      
+//       monthlyPrice: price,
+//       area: areaValue,
+//       roomsNb: rooms,
+//       bathroomsNb: bathrooms,
+      
+//       mainImage: json['main_image'] as String? ?? '', 
 //       otherImages: otherImages,
-//       certified: json['certified'] as bool,
-//       status: json['status'] as String,
+//       certified: isCertified,
+//       status: json['status'] as String? ?? 'N/A',
+      
 //       town: Town.fromJson(json['town'] as Map<String, dynamic>),
 //       category: Category.fromJson(json['category'] as Map<String, dynamic>),
+      
+//       // Champs de détail robustes (prend 'N/A' si non trouvé dans la liste)
+//       refNumber: json['refnumber'] as String? ?? 'N/A',
+//       livingRoomsNb: livingRooms,
+//       hasInternalKitchen: hasIntKitchen,
+//       hasExternalKitchen: hasExtKitchen,
+//       hasAParking: hasParking,
+//       hasAirConditioning: hasAC,
+//       hasSecurityGuards: hasSecurity,
+//       hasBalcony: hasBaly,
 //     );
 //   }
 // }
 
-// // Modèle pour la réponse paginée de la liste des propriétés
+// // Modèle pour la réponse paginée de la liste des propriétés (pour HomePage)
 // class PropertyListResponse {
 //   final List<Property> records;
 //   final int totalRecords;
@@ -194,6 +276,9 @@ class Property {
   final bool hasSecurityGuards;
   final bool hasBalcony;
   
+  // NOUVEAU : Champ pour l'ID du propriétaire (nécessaire pour le signalement)
+  final String ownerId;
+  
   // NOTE: Les champs 'nb_visite' et 'compartment_number' sont ignorés pour la simplicité de ce modèle.
 
   Property({
@@ -220,6 +305,7 @@ class Property {
     required this.hasAirConditioning,
     required this.hasSecurityGuards,
     required this.hasBalcony,
+    required this.ownerId,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -250,6 +336,17 @@ class Property {
     // La description peut être longue ou manquante dans la liste, on la laisse telle quelle
     final descriptionValue = json['description'] as String? ?? 'Description non disponible.';
 
+    // NOUVEAU : Récupération de l'ID du propriétaire
+    // Selon votre réponse API, le propriétaire peut être dans 'owner_id' ou dans 'owner'
+    String ownerId;
+    if (json['owner_id'] != null) {
+      ownerId = json['owner_id'] as String;
+    } else if (json['owner'] != null && json['owner'] is Map<String, dynamic>) {
+      ownerId = (json['owner'] as Map<String, dynamic>)['id'] as String? ?? '';
+    } else {
+      ownerId = ''; // Valeur par défaut si non trouvé
+    }
+
     return Property(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -278,6 +375,9 @@ class Property {
       hasAirConditioning: hasAC,
       hasSecurityGuards: hasSecurity,
       hasBalcony: hasBaly,
+      
+      // NOUVEAU : ID du propriétaire
+      ownerId: ownerId,
     );
   }
 }
