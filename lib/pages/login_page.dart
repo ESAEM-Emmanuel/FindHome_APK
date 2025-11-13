@@ -317,11 +317,18 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Zone Logo/Icône
-                const Icon(
-                  Icons.store_mall_directory_outlined,
-                  size: 100,
-                  color: primaryBlue,
+                // // 1. Zone Logo/Icône
+                // const Icon(
+                //   Icons.store_mall_directory_outlined,
+                //   size: 100,
+                //   color: primaryBlue,
+                // ),
+                // const SizedBox(height: 16),
+                Image.asset(
+                  'assets/images/find_home_logo.png', // Assurez-vous que le chemin correspond à votre fichier
+                  height: 100,
+                  width: 100,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 16),
                 

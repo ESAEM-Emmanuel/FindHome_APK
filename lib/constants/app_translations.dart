@@ -69,7 +69,6 @@ class AppTranslations {
       'required_phone': 'The phone number is required',
       'password_min_length': 'The password must contain at least 6 characters.',
       'password_mismatch': 'Passwords do not match',
-
       'register': 'Register',
       'create_account': 'Create Account',
       'fill_details_to_continue': 'Fill your details to continue',
@@ -85,9 +84,15 @@ class AppTranslations {
       'required_town_id': 'Town ID is required',
       'invalid_date_format': 'Invalid date format (YYYY-MM-DD)',
       'passwords_dont_match': 'Passwords do not match',
-
       'search_town': 'Search for a town...',
       'no_town_found': 'No town found',
+
+      'profile_picture': 'Profile Picture',
+      'no_image_selected': 'No image selected',
+      'upload_success': 'Upload successful ✓',
+      'remove': 'Remove',
+      'choose_from_gallery': 'Gallery',
+      'take_photo': 'Camera',
       
     },
     'fr': {
@@ -142,7 +147,6 @@ class AppTranslations {
       'filters': 'Filtres',
       'filters_coming_soon': 'Fonctionnalité de filtres à venir...',
       'close': 'Fermer',
-
       'profile': 'Profil',
       'logout': 'Déconnexion',
       'logout_confirmation': 'Déconnexion',
@@ -157,7 +161,6 @@ class AppTranslations {
       'required_phone': 'Le numéro de téléphone est requis',
       'password_min_length': 'Le mot de passe doit contenir au moins 6 caractères',
       'password_mismatch': 'Les mots de passe ne correspondent pas',
-
       'register': 'Inscription',
       'create_account': 'Créer un compte',
       'fill_details_to_continue': 'Remplissez vos informations pour continuer',
@@ -173,9 +176,15 @@ class AppTranslations {
       'required_town_id': 'L\'ID de la ville est requis',
       'invalid_date_format': 'Format de date invalide (YYYY-MM-DD)',
       'passwords_dont_match': 'Les mots de passe ne correspondent pas',
-      
       'search_town': 'Rechercher une ville...',
       'no_town_found': 'Aucune ville trouvée',
+
+      'profile_picture': 'Photo de profil',
+      'no_image_selected': 'Aucune photo sélectionnée',
+      'upload_success': 'Upload réussi ✓',
+      'remove': 'Supprimer',
+      'choose_from_gallery': 'Galerie',
+      'take_photo': 'Camera',
     },
   };
 
