@@ -1,7 +1,8 @@
 // lib/pages/forgot_password_page.dart (Corrigé et Amélioré)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../api/auth_service.dart'; 
+// import '../api/auth_servic…e.dart'; 
+import '../services/auth_service.dart'; 
 import '../providers/settings_provider.dart';
 import '../constants/app_translations.dart';
 
