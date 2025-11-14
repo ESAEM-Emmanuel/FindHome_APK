@@ -32,6 +32,10 @@ dependencies:
   provider: ^6.0.5                 # Gestion de l'état (essentiel)
   dio: ^5.4.0+1                    # Pour les appels API
   http: ^1.1.0                     # Pour les appels API
+  # google_maps_flutter: ^2.2.3    # pour googel map
+  flutter_map: ^5.0.0       # pour la carte
+  latlong2: ^0.9.1          # pour la gestion long lat
+  geolocator: ^11.0.1       # pour la geolocalisation
 
   # ✅ CORRIGÉ : Mise à jour de la version de intl pour résoudre le conflit avec flutter_localizations
   intl: ^0.20.2                    # Pour la localisation (i18n)

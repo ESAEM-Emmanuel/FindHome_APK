@@ -50,5 +50,7 @@
 	<string>Cette application a besoin d'accéder à la caméra pour prendre une photo de profil</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cette application a besoin d'accéder à la galerie pour sélectionner une photo de profil</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cette application a besoin d'accéder à votre position pour afficher les propriétés autour de vous.</string>
 </dict>
 </plist>

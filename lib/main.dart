@@ -416,7 +416,9 @@ import 'pages/home_page.dart';
 import 'pages/login_page.dart'; 
 import 'pages/register_page.dart'; 
 import 'pages/forgot_password_page.dart';
-import 'pages/property_detail_page.dart'; 
+import 'pages/property_detail_page.dart';
+import 'pages/property_map_page.dart';
+import 'pages/properties_page.dart'; 
 
 // Services et Providers
 import 'providers/auth_provider.dart';
@@ -751,14 +753,18 @@ class _MainScreenState extends State<MainScreen> {
 
     final List<String> titles = [
       AppTranslations.get('home', locale), 
-      AppTranslations.get('markets', locale),
-      AppTranslations.get('status', locale),
+      // AppTranslations.get('markets', locale),
+      // AppTranslations.get('status', locale),
+      AppTranslations.get('map', locale, 'Carte'),
+      AppTranslations.get('properties', locale, 'Propriétés'),
     ];
 
     final List<Widget> pages = [
       const HomePage(),
-      const MarketPage(),
-      CameraPage(cameras: widget.cameras), 
+      // const MarketPage(),
+      // CameraPage(cameras: widget.cameras),
+      const PropertyMapPage(), // Nouvelle page de carte
+      const PropertiesPage(), // Nouvelle page de gestion des propriétés
     ];
 
     return Scaffold(
@@ -835,13 +841,21 @@ class _MainScreenState extends State<MainScreen> {
             icon: const Icon(Icons.home),
             label: AppTranslations.get('home', locale),
           ),
+          // BottomNavigationBarItem(
+          //   icon: const Icon(Icons.calendar_month),
+          //   label: AppTranslations.get('markets', locale),
+          // ),
+          // BottomNavigationBarItem(
+          //   icon: const Icon(Icons.camera_alt), 
+          //   label: AppTranslations.get('status', locale),
+          // ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_month),
-            label: AppTranslations.get('markets', locale),
+            icon: const Icon(Icons.map),
+            label: AppTranslations.get('map', locale, 'Carte'),
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.camera_alt), 
-            label: AppTranslations.get('status', locale),
+            icon: const Icon(Icons.add_home_work), 
+            label: AppTranslations.get('properties', locale, 'Propriétés'),
           ),
         ],
       ),

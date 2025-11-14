@@ -80,6 +80,9 @@
 //   final bool hasSecurityGuards;
 //   final bool hasBalcony;
   
+//   // NOUVEAU : Champ pour l'ID du propriétaire (nécessaire pour le signalement)
+//   final String ownerId;
+  
 //   // NOTE: Les champs 'nb_visite' et 'compartment_number' sont ignorés pour la simplicité de ce modèle.
 
 //   Property({
@@ -106,6 +109,7 @@
 //     required this.hasAirConditioning,
 //     required this.hasSecurityGuards,
 //     required this.hasBalcony,
+//     required this.ownerId,
 //   });
 
 //   factory Property.fromJson(Map<String, dynamic> json) {
@@ -136,6 +140,17 @@
 //     // La description peut être longue ou manquante dans la liste, on la laisse telle quelle
 //     final descriptionValue = json['description'] as String? ?? 'Description non disponible.';
 
+//     // NOUVEAU : Récupération de l'ID du propriétaire
+//     // Selon votre réponse API, le propriétaire peut être dans 'owner_id' ou dans 'owner'
+//     String ownerId;
+//     if (json['owner_id'] != null) {
+//       ownerId = json['owner_id'] as String;
+//     } else if (json['owner'] != null && json['owner'] is Map<String, dynamic>) {
+//       ownerId = (json['owner'] as Map<String, dynamic>)['id'] as String? ?? '';
+//     } else {
+//       ownerId = ''; // Valeur par défaut si non trouvé
+//     }
+
 //     return Property(
 //       id: json['id'] as String,
 //       title: json['title'] as String,
@@ -164,6 +179,9 @@
 //       hasAirConditioning: hasAC,
 //       hasSecurityGuards: hasSecurity,
 //       hasBalcony: hasBaly,
+      
+//       // NOUVEAU : ID du propriétaire
+//       ownerId: ownerId,
 //     );
 //   }
 // }
@@ -194,7 +212,10 @@
 //     );
 //   }
 // }
+
 // lib/models/property_model.dart
+
+import 'package:flutter/material.dart';
 
 class Category {
   final String id;
@@ -266,7 +287,7 @@ class Property {
   final Town town;
   final Category category;
 
-  // Champs de détail supplémentaires (utilisés dans PropertyDetailPage)
+  // Champs de détail supplémentaires
   final String refNumber;
   final int livingRoomsNb;
   final bool hasInternalKitchen;
@@ -276,10 +297,13 @@ class Property {
   final bool hasSecurityGuards;
   final bool hasBalcony;
   
-  // NOUVEAU : Champ pour l'ID du propriétaire (nécessaire pour le signalement)
+  // Champ pour l'ID du propriétaire
   final String ownerId;
   
-  // NOTE: Les champs 'nb_visite' et 'compartment_number' sont ignorés pour la simplicité de ce modèle.
+  // NOUVEAU : Champs pour la localisation
+  final List<String> location;
+  final double? latitude;
+  final double? longitude;
 
   Property({
     required this.id,
@@ -296,7 +320,6 @@ class Property {
     required this.status,
     required this.town,
     required this.category,
-    // Champs de détail
     required this.refNumber,
     required this.livingRoomsNb,
     required this.hasInternalKitchen,
@@ -306,23 +329,26 @@ class Property {
     required this.hasSecurityGuards,
     required this.hasBalcony,
     required this.ownerId,
+    // NOUVEAU : Localisation
+    required this.location,
+    this.latitude,
+    this.longitude,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
     // 1. Gestion des listes d'images
     List<dynamic> otherImagesJson = json['other_images'] ?? [];
     List<String> otherImages = otherImagesJson
-        .where((e) => e != null) // Assure qu'aucun élément null ne passe
+        .where((e) => e != null)
         .map((e) => e.toString())
         .toList();
 
-    // 2. Gestion robuste des champs numériques/booléens (pour List ET Detail)
+    // 2. Gestion robuste des champs numériques/booléens
     final price = (json['monthly_price'] as num?)?.toInt() ?? 0;
     final areaValue = (json['area'] as num?)?.toInt() ?? 0;
     final rooms = (json['rooms_nb'] as num?)?.toInt() ?? 0;
     final bathrooms = (json['bathrooms_nb'] as num?)?.toInt() ?? 0;
     
-    // Ces champs peuvent être absents dans la réponse de la LISTE, d'où les valeurs par défaut.
     final livingRooms = (json['living_rooms_nb'] as num?)?.toInt() ?? 0; 
     
     final isCertified = json['certified'] as bool? ?? false;
@@ -333,18 +359,33 @@ class Property {
     final hasSecurity = json['has_security_guards'] as bool? ?? false;
     final hasBaly = json['has_balcony'] as bool? ?? false;
 
-    // La description peut être longue ou manquante dans la liste, on la laisse telle quelle
     final descriptionValue = json['description'] as String? ?? 'Description non disponible.';
 
-    // NOUVEAU : Récupération de l'ID du propriétaire
-    // Selon votre réponse API, le propriétaire peut être dans 'owner_id' ou dans 'owner'
+    // 3. Gestion de l'ID du propriétaire
     String ownerId;
     if (json['owner_id'] != null) {
       ownerId = json['owner_id'] as String;
     } else if (json['owner'] != null && json['owner'] is Map<String, dynamic>) {
       ownerId = (json['owner'] as Map<String, dynamic>)['id'] as String? ?? '';
     } else {
-      ownerId = ''; // Valeur par défaut si non trouvé
+      ownerId = '';
+    }
+
+    // 4. NOUVEAU : Gestion de la localisation
+    List<dynamic> locationJson = json['location'] ?? [];
+    List<String> locationList = locationJson.map((e) => e.toString()).toList();
+    
+    // Extraction des coordonnées GPS
+    double? parsedLatitude;
+    double? parsedLongitude;
+    
+    if (locationList.length >= 3) {
+      try {
+        parsedLatitude = double.tryParse(locationList[1]); // Index 1 = latitude
+        parsedLongitude = double.tryParse(locationList[2]); // Index 2 = longitude
+      } catch (e) {
+        debugPrint("Erreur parsing coordonnées: $e");
+      }
     }
 
     return Property(
@@ -366,7 +407,6 @@ class Property {
       town: Town.fromJson(json['town'] as Map<String, dynamic>),
       category: Category.fromJson(json['category'] as Map<String, dynamic>),
       
-      // Champs de détail robustes (prend 'N/A' si non trouvé dans la liste)
       refNumber: json['refnumber'] as String? ?? 'N/A',
       livingRoomsNb: livingRooms,
       hasInternalKitchen: hasIntKitchen,
@@ -376,13 +416,20 @@ class Property {
       hasSecurityGuards: hasSecurity,
       hasBalcony: hasBaly,
       
-      // NOUVEAU : ID du propriétaire
       ownerId: ownerId,
+      
+      // NOUVEAU : Localisation
+      location: locationList,
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
     );
   }
+
+  // Méthode utilitaire pour vérifier si la localisation est disponible
+  bool get hasValidLocation => latitude != null && longitude != null;
 }
 
-// Modèle pour la réponse paginée de la liste des propriétés (pour HomePage)
+// Modèle pour la réponse paginée
 class PropertyListResponse {
   final List<Property> records;
   final int totalRecords;
