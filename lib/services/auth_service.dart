@@ -10,34 +10,76 @@ class AuthService {
 
   // --- Connexion ---
   Future<User> login(String username, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: {'Accept': 'application/json'},
-      body: {
-        'grant_type': 'password',
-        'username': username,
-        'password': password,
-        'scope': '',
-        'client_id': '', // À compléter si nécessaire
-        'client_secret': '', // À compléter si nécessaire
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+    try {
+      print('🔄 Envoi de la requête login...');
       
-      // Sauvegarde des tokens
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('access_token', data['access_token']);
-      await prefs.setString('refresh_token', data['refresh_token']);
-      await prefs.setBool('isLoggedIn', true);
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'grant_type': 'password',
+          'username': username,
+          'password': password,
+          'scope': '',
+          'client_id': 'string',
+          'client_secret': 'string',
+        },
+      );
 
-      return User.fromJson(data['user']);
-    } else {
-      throw Exception('Échec de la connexion: ${response.statusCode}');
+      print('📡 Statut HTTP: ${response.statusCode}');
+      print('📦 Corps de la réponse: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('🔍 Structure des données: ${data.keys}');
+        
+        // Sauvegarde des tokens
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        
+        final accessToken = data['access_token'];
+        final refreshToken = data['refresh_token'];
+        
+        print('🔑 Access Token: ${accessToken != null ? "PRÉSENT" : "ABSENT"}');
+        print('🔑 Refresh Token: ${refreshToken != null ? "PRÉSENT" : "ABSENT"}');
+        
+        if (accessToken == null) {
+          throw Exception('Aucun token d\'accès trouvé dans la réponse');
+        }
+        
+        await prefs.setString('access_token', accessToken);
+        if (refreshToken != null) {
+          await prefs.setString('refresh_token', refreshToken);
+        }
+        await prefs.setBool('isLoggedIn', true);
+
+        // CORRECTION : L'utilisateur est dans data['user']
+        if (data['user'] != null) {
+          print('👤 Données utilisateur trouvées');
+          final user = User.fromJson(data['user']);
+          print('✅ Utilisateur parsé: ${user.username}');
+          return user;
+        } else {
+          throw Exception('Données utilisateur manquantes dans la réponse');
+        }
+        
+      } else {
+        String errorMessage = 'Échec de la connexion: ${response.statusCode}';
+        try {
+          final errorData = json.decode(response.body);
+          errorMessage = errorData['detail'] ?? errorData['message'] ?? errorMessage;
+        } catch (e) {
+          // Ignorer si le parsing échoue
+        }
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('❌ Erreur lors du login: $e');
+      rethrow;
     }
   }
-
   // --- Déconnexion ---
   Future<void> logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -281,6 +323,129 @@ class AuthService {
       }
     } catch (e) {
       return null;
+    }
+  }
+
+  // --- Récupération des données utilisateur détaillées ---
+  Future<User> getUserProfile(String userId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token');
+
+    if (accessToken == null) {
+      throw Exception('Non authentifié');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId'),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return User.fromJson(data);
+    } else {
+      throw Exception('Erreur lors de la récupération du profil: ${response.statusCode}');
+    }
+  }
+
+  // --- Mise à jour du profil utilisateur ---
+  Future<User> updateUserProfile({
+    required String userId,
+    String? username,
+    String? phone,
+    String? email,
+    String? birthday,
+    String? gender,
+    String? image,
+    String? townId,
+  }) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token');
+
+    if (accessToken == null) {
+      throw Exception('Non authentifié');
+    }
+
+    // Construction des données de mise à jour
+    final Map<String, dynamic> updateData = {};
+    
+    if (username != null) updateData['username'] = username;
+    if (phone != null) updateData['phone'] = phone;
+    if (email != null) updateData['email'] = email;
+    if (birthday != null) updateData['birthday'] = birthday;
+    if (gender != null) updateData['gender'] = gender;
+    if (image != null) updateData['image'] = image;
+    if (townId != null) updateData['town_id'] = townId;
+
+    print('🔄 Envoi de la mise à jour du profil...');
+    print('📤 Données envoyées: $updateData');
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$userId'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: json.encode(updateData),
+    );
+
+    print('📡 Statut HTTP: ${response.statusCode}');
+    print('📦 Réponse: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return User.fromJson(data);
+    } else {
+      final errorMessage = _parseErrorResponse(response.body);
+      throw Exception('Erreur lors de la mise à jour: $errorMessage');
+    }
+  }
+
+  // --- Changement de mot de passe ---
+  Future<void> changePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token');
+
+    if (accessToken == null) {
+      throw Exception('Non authentifié');
+    }
+
+    print('🔄 Envoi du changement de mot de passe...');
+    print('👤 User ID: $userId');
+
+    // CORRECTION : Utiliser PUT au lieu de POST et les bons noms de champs
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$userId'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: json.encode({
+        'password': currentPassword,        // Ancien mot de passe
+        'new_password': newPassword,        // Nouveau mot de passe
+        'confirm_new_password': confirmPassword, // Confirmation du nouveau mot de passe
+      }),
+    );
+
+    print('📡 Statut HTTP: ${response.statusCode}');
+    print('📦 Réponse: ${response.body}');
+
+    if (response.statusCode == 200) {
+      print('✅ Mot de passe changé avec succès');
+      return;
+    } else {
+      final errorMessage = _parseErrorResponse(response.body);
+      throw Exception('Erreur lors du changement de mot de passe: $errorMessage');
     }
   }
 }

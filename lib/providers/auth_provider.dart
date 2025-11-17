@@ -1,7 +1,8 @@
 // // lib/providers/auth_provider.dart
 // import 'package:flutter/foundation.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
-// import '../api/auth_service.dart';
+// // import '../api/auth_service.dart';
+// import '../services/auth_service.dart';
 // import '../models/user.dart';
 
 // class AuthProvider with ChangeNotifier {
@@ -12,12 +13,14 @@
 //   User? _currentUser;
 //   bool _isLoading = true;
 //   String? _accessToken;
+//   String? _errorMessage;
 
 //   // Getters
 //   bool get isLoggedIn => _isLoggedIn;
 //   User? get currentUser => _currentUser;
 //   bool get isLoading => _isLoading;
 //   String? get accessToken => _accessToken;
+//   String? get errorMessage => _errorMessage;
 
 //   AuthProvider() {
 //     _checkLoginStatus();
@@ -43,6 +46,10 @@
 //   /// Connecte l'utilisateur
 //   Future<void> login(String username, String password) async {
 //     try {
+//       _isLoading = true;
+//       _errorMessage = null;
+//       notifyListeners();
+
 //       _currentUser = await _authService.login(username, password);
 //       _isLoggedIn = true;
       
@@ -53,10 +60,14 @@
 //       // Met à jour le token après connexion
 //       await _loadAccessToken();
       
+//       _isLoading = false;
 //       notifyListeners();
 //     } catch (e) {
+//       _isLoading = false;
 //       _isLoggedIn = false;
+//       _currentUser = null;
 //       _accessToken = null;
+//       _errorMessage = e.toString();
 //       notifyListeners();
 //       rethrow;
 //     }
@@ -64,36 +75,73 @@
 
 //   /// Déconnecte l'utilisateur
 //   Future<void> logout() async {
-//     await _authService.logout();
-    
-//     _isLoggedIn = false;
-//     _currentUser = null;
-//     _accessToken = null;
-    
-//     // Supprime les données de connexion
-//     final prefs = await SharedPreferences.getInstance();
-//     await prefs.remove('isLoggedIn');
-//     await prefs.remove('access_token');
-    
-//     notifyListeners();
+//     try {
+//       await _authService.logout();
+//     } finally {
+//       _isLoggedIn = false;
+//       _currentUser = null;
+//       _accessToken = null;
+//       _errorMessage = null;
+      
+//       // Supprime les données de connexion
+//       final prefs = await SharedPreferences.getInstance();
+//       await prefs.remove('isLoggedIn');
+//       await prefs.remove('access_token');
+      
+//       notifyListeners();
+//     }
 //   }
 
-//   /// Inscrit un nouvel utilisateur
+//   /// Inscrit un nouvel utilisateur avec tous les champs
 //   Future<void> register({
 //     required String username,
 //     required String phone,
 //     required String email,
+//     required String birthday,
 //     required String password,
+//     required String confirmPassword,
+//     required String townId,
+//     String? gender,
+//     String? role,
+//     String? image,
+//     bool isStaff = false,
 //   }) async {
-//     await _authService.register(
-//       username: username,
-//       phone: phone,
-//       email: email,
-//       password: password,
-//     );
+//     try {
+//       _isLoading = true;
+//       _errorMessage = null;
+//       notifyListeners();
+
+//       _currentUser = await _authService.register(
+//         username: username,
+//         phone: phone,
+//         email: email,
+//         birthday: birthday,
+//         password: password,
+//         confirmPassword: confirmPassword,
+//         townId: townId,
+//         gender: gender,
+//         role: role,
+//         image: image,
+//         isStaff: isStaff,
+//       );
+
+//       _isLoading = false;
+//       notifyListeners();
+//     } catch (e) {
+//       _isLoading = false;
+//       _errorMessage = e.toString();
+//       notifyListeners();
+//       rethrow;
+//     }
 //   }
 
-//   /// Recharge les données utilisateur (à implémenter si nécessaire)
+//   /// Efface les messages d'erreur
+//   void clearError() {
+//     _errorMessage = null;
+//     notifyListeners();
+//   }
+
+//   /// Recharge les données utilisateur
 //   Future<void> refreshUserData() async {
 //     if (_accessToken != null) {
 //       // Implémentation pour recharger les données utilisateur
@@ -101,12 +149,9 @@
 //     }
 //   }
 // }
-
-
 // lib/providers/auth_provider.dart
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import '../api/auth_service.dart';
 import '../services/auth_service.dart';
 import '../models/user.dart';
 
@@ -251,6 +296,109 @@ class AuthProvider with ChangeNotifier {
     if (_accessToken != null) {
       // Implémentation pour recharger les données utilisateur
       // en utilisant l'accessToken
+    }
+  }
+
+  // --- Récupération des données utilisateur détaillées ---
+  Future<void> fetchUserProfile() async {
+    if (_currentUser == null) return;
+
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final userData = await _authService.getUserProfile(_currentUser!.id);
+      _currentUser = userData;
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // --- Mise à jour du profil ---
+  Future<void> updateProfile({
+    String? username,
+    String? phone,
+    String? email,
+    String? birthday,
+    String? gender,
+    String? image,
+    String? townId,
+  }) async {
+    if (_currentUser == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final updatedUser = await _authService.updateUserProfile(
+        userId: _currentUser!.id,
+        username: username,
+        phone: phone,
+        email: email,
+        birthday: birthday,
+        gender: gender,
+        image: image,
+        townId: townId,
+      );
+
+      _currentUser = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // --- Changement de mot de passe CORRIGÉ ---
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (_currentUser == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      print('🔄 Début du changement de mot de passe...');
+      
+      await _authService.changePassword(
+        userId: _currentUser!.id,
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+
+      _isLoading = false;
+      
+      // SUPPRIMÉ: La gestion des contrôleurs doit être faite dans le UI, pas dans le provider
+      // _currentPasswordController?.clear();
+      // _newPasswordController?.clear();
+      // _confirmPasswordController?.clear();
+      
+      notifyListeners();
+      
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
     }
   }
 }

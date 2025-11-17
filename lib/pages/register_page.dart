@@ -1,5 +1,7 @@
 // // lib/pages/register_page.dart
+// import 'dart:io';
 // import 'package:flutter/material.dart';
+// import 'package:image_picker/image_picker.dart';
 // import 'package:provider/provider.dart';
 // import '../providers/auth_provider.dart';
 // import '../providers/settings_provider.dart';
@@ -7,6 +9,7 @@
 // import '../constants/app_translations.dart';
 // import '../models/town.dart';
 // import '../services/town_service.dart';
+// import '../services/media_service.dart';
 
 // class RegisterPage extends StatefulWidget {
 //   const RegisterPage({super.key});
@@ -34,6 +37,13 @@
 //   Town? _selectedTown;
 //   bool _isSearchingTowns = false;
 //   bool _showTownDropdown = false;
+  
+//   // Variables pour l'upload d'image
+//   final MediaService _mediaService = MediaService();
+//   final ImagePicker _imagePicker = ImagePicker();
+//   File? _selectedImage;
+//   String? _uploadedImageUrl;
+//   bool _isUploadingImage = false;
 
 //   @override
 //   void initState() {
@@ -53,6 +63,104 @@
 //     _townSearchController.dispose();
 //     super.dispose();
 //   }
+
+//   // === MÉTHODES POUR L'UPLOAD D'IMAGE ===
+
+//   Future<void> _pickImage() async {
+//     try {
+//       final XFile? pickedFile = await _imagePicker.pickImage(
+//         source: ImageSource.gallery,
+//         maxWidth: 800,
+//         maxHeight: 800,
+//         imageQuality: 80,
+//       );
+
+//       if (pickedFile != null) {
+//         setState(() {
+//           _selectedImage = File(pickedFile.path);
+//         });
+//         // Upload automatique de l'image
+//         await _uploadImage();
+//       }
+//     } catch (e) {
+//       _showErrorSnackbar('Erreur lors de la sélection de l\'image: $e');
+//     }
+//   }
+
+//   Future<void> _takePhoto() async {
+//     try {
+//       final XFile? pickedFile = await _imagePicker.pickImage(
+//         source: ImageSource.camera,
+//         maxWidth: 800,
+//         maxHeight: 800,
+//         imageQuality: 80,
+//       );
+
+//       if (pickedFile != null) {
+//         setState(() {
+//           _selectedImage = File(pickedFile.path);
+//         });
+//         // Upload automatique de l'image
+//         await _uploadImage();
+//       }
+//     } catch (e) {
+//       _showErrorSnackbar('Erreur lors de la prise de photo: $e');
+//     }
+//   }
+
+//   Future<void> _uploadImage() async {
+//     if (_selectedImage == null) return;
+
+//     setState(() {
+//       _isUploadingImage = true;
+//     });
+
+//     try {
+//       final imageUrl = await _mediaService.uploadSingleFile(_selectedImage!);
+//       setState(() {
+//         _uploadedImageUrl = imageUrl;
+//         _isUploadingImage = false;
+//       });
+      
+//       _showSuccessSnackbar('Photo de profil uploadée avec succès');
+//     } catch (e) {
+//       setState(() {
+//         _isUploadingImage = false;
+//       });
+//       _showErrorSnackbar('Erreur lors de l\'upload: $e');
+//     }
+//   }
+
+//   void _removeImage() {
+//     setState(() {
+//       _selectedImage = null;
+//       _uploadedImageUrl = null;
+//     });
+//   }
+
+//   void _showErrorSnackbar(String message) {
+//     if (mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text(message),
+//           backgroundColor: AppThemes.getErrorColor(context),
+//         ),
+//       );
+//     }
+//   }
+
+//   void _showSuccessSnackbar(String message) {
+//     if (mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text(message),
+//           backgroundColor: AppThemes.getSuccessColor(context),
+//         ),
+//       );
+//     }
+//   }
+
+//   // === MÉTHODES EXISTANTES (légèrement modifiées) ===
 
 //   Future<void> _loadAllTowns() async {
 //     try {
@@ -140,6 +248,7 @@
 //           confirmPassword: _confirmPasswordController.text,
 //           townId: _selectedTown!.id,
 //           gender: _selectedGender,
+//           image: _uploadedImageUrl, // ✅ On envoie l'URL de l'image uploadée
 //         );
 
 //         if (mounted) {
@@ -168,16 +277,136 @@
 //     }
 //   }
 
-//   // CORRECTION : Ajouter le paramètre locale
-//   Widget _buildTownAutocomplete(Locale locale) {
+//   // === WIDGET POUR L'UPLOAD D'IMAGE ===
+
+//   Widget _buildImageUploadSection(Locale locale) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
-//         // Champ de recherche de ville
+//         Text(
+//           '${AppTranslations.get('profile_picture', locale, 'Photo de profil')} (optionnel)',
+//           style: TextStyle(
+//             fontWeight: FontWeight.w500,
+//             color: Theme.of(context).colorScheme.secondary,
+//           ),
+//         ),
+//         const SizedBox(height: 8),
+        
+//         // Affichage de l'image sélectionnée ou placeholder
+//         Container(
+//           width: double.infinity,
+//           padding: const EdgeInsets.all(16),
+//           decoration: BoxDecoration(
+//             border: Border.all(color: Colors.grey.shade300),
+//             borderRadius: BorderRadius.circular(12),
+//           ),
+//           child: Column(
+//             children: [
+//               if (_selectedImage != null) ...[
+//                 // Image sélectionnée
+//                 Stack(
+//                   children: [
+//                     Container(
+//                       width: 120,
+//                       height: 120,
+//                       decoration: BoxDecoration(
+//                         borderRadius: BorderRadius.circular(60),
+//                         image: DecorationImage(
+//                           image: FileImage(_selectedImage!),
+//                           fit: BoxFit.cover,
+//                         ),
+//                       ),
+//                     ),
+//                     if (_isUploadingImage)
+//                       Positioned.fill(
+//                         child: Container(
+//                           decoration: BoxDecoration(
+//                             color: Colors.black54,
+//                             borderRadius: BorderRadius.circular(60),
+//                           ),
+//                           child: const Center(
+//                             child: CircularProgressIndicator(color: Colors.white),
+//                           ),
+//                         ),
+//                       ),
+//                   ],
+//                 ),
+//                 const SizedBox(height: 12),
+//                 if (_uploadedImageUrl != null)
+//                   Text(
+//                     AppTranslations.get('upload_success', locale, 'Upload réussi ✓'),
+//                     style: TextStyle(
+//                       color: AppThemes.getSuccessColor(context),
+//                       fontWeight: FontWeight.bold,
+//                     ),
+//                   ),
+//                 const SizedBox(height: 12),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     ElevatedButton.icon(
+//                       onPressed: _removeImage,
+//                       style: ElevatedButton.styleFrom(
+//                         backgroundColor: Colors.red.shade50,
+//                         foregroundColor: Colors.red,
+//                       ),
+//                       icon: const Icon(Icons.delete, size: 18),
+//                       label: Text(AppTranslations.get('remove', locale, 'Supprimer')),
+//                     ),
+//                   ],
+//                 ),
+//               ] else ...[
+//                 // Aucune image sélectionnée
+//                 Icon(
+//                   Icons.person,
+//                   size: 80,
+//                   color: Colors.grey.shade400,
+//                 ),
+//                 const SizedBox(height: 12),
+//                 Text(
+//                   AppTranslations.get('no_image_selected', locale, 'Aucune photo sélectionnée'),
+//                   style: TextStyle(color: Colors.grey.shade600),
+//                 ),
+//               ],
+//               const SizedBox(height: 16),
+              
+//               // Boutons d'action
+//               Row(
+//                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                 children: [
+//                   Expanded(
+//                     child: OutlinedButton.icon(
+//                       onPressed: _pickImage,
+//                       icon: const Icon(Icons.photo_library),
+//                       label: Text(AppTranslations.get('choose_from_gallery', locale, 'Galerie')),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 12),
+//                   Expanded(
+//                     child: OutlinedButton.icon(
+//                       onPressed: _takePhoto,
+//                       icon: const Icon(Icons.camera_alt),
+//                       label: Text(AppTranslations.get('take_photo', locale, 'Camera')),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+
+//   Widget _buildTownAutocomplete(Locale locale) {
+//     // Votre méthode existante inchangée
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
 //         TextFormField(
 //           controller: _townSearchController,
 //           decoration: InputDecoration(
-//             labelText: '${AppTranslations.get('town', locale, 'Ville')} *', // CORRECTION : interpolation
+//             labelText: '${AppTranslations.get('town', locale, 'Ville')} *',
 //             hintText: AppTranslations.get('search_town', locale, 'Rechercher une ville...'),
 //             prefixIcon: const Icon(Icons.search, color: primaryBlue),
 //             suffixIcon: _selectedTown != null
@@ -209,7 +438,6 @@
 //           },
 //         ),
         
-//         // Dropdown des résultats
 //         if (_showTownDropdown && _filteredTowns.isNotEmpty)
 //           Container(
 //             decoration: BoxDecoration(
@@ -240,7 +468,6 @@
 //             ),
 //           ),
         
-//         // Message si aucune ville trouvée
 //         if (_showTownDropdown && _townSearchController.text.isNotEmpty && _filteredTowns.isEmpty && !_isSearchingTowns)
 //           Container(
 //             padding: const EdgeInsets.all(16),
@@ -317,11 +544,12 @@
 //                   ),
 //                   const SizedBox(height: 40),
 
+
 //                   // Champ Username
 //                   TextFormField(
 //                     controller: _usernameController,
 //                     decoration: InputDecoration(
-//                       labelText: '${AppTranslations.get('username', locale, 'Nom d\'utilisateur')} *', // CORRECTION
+//                       labelText: '${AppTranslations.get('username', locale, 'Nom d\'utilisateur')} *',
 //                       prefixIcon: const Icon(Icons.person_outline, color: primaryBlue),
 //                     ),
 //                     validator: (value) {
@@ -333,11 +561,11 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // Champ Phone
+//                   // ... (le reste de vos champs existants)
 //                   TextFormField(
 //                     controller: _phoneController,
 //                     decoration: InputDecoration(
-//                       labelText: '${AppTranslations.get('phone', locale, 'Téléphone')} *', // CORRECTION
+//                       labelText: '${AppTranslations.get('phone', locale, 'Téléphone')} *',
 //                       prefixIcon: const Icon(Icons.phone, color: primaryBlue),
 //                     ),
 //                     keyboardType: TextInputType.phone,
@@ -350,11 +578,10 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // Champ Email
 //                   TextFormField(
 //                     controller: _emailController,
 //                     decoration: InputDecoration(
-//                       labelText: '${AppTranslations.get('email', locale, 'Email')} *', // CORRECTION
+//                       labelText: '${AppTranslations.get('email', locale, 'Email')} *',
 //                       prefixIcon: const Icon(Icons.email_outlined, color: primaryBlue),
 //                     ),
 //                     keyboardType: TextInputType.emailAddress,
@@ -370,11 +597,10 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // Champ Birthday
 //                   TextFormField(
 //                     controller: _birthdayController,
 //                     decoration: InputDecoration(
-//                       labelText: '${AppTranslations.get('birthday', locale, 'Date de naissance')} *', // CORRECTION
+//                       labelText: '${AppTranslations.get('birthday', locale, 'Date de naissance')} *',
 //                       hintText: 'YYYY-MM-DD',
 //                       prefixIcon: const Icon(Icons.cake, color: primaryBlue),
 //                     ),
@@ -402,7 +628,6 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // Champ Gender (facultatif)
 //                   DropdownButtonFormField<String>(
 //                     value: _selectedGender,
 //                     decoration: InputDecoration(
@@ -426,12 +651,11 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // Champ Password
 //                   TextFormField(
 //                     controller: _passwordController,
 //                     obscureText: true,
 //                     decoration: InputDecoration(
-//                       labelText: '${AppTranslations.get('password', locale, 'Mot de passe')} *', // CORRECTION
+//                       labelText: '${AppTranslations.get('password', locale, 'Mot de passe')} *',
 //                       prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
 //                     ),
 //                     validator: (value) {
@@ -446,12 +670,11 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // Champ Confirm Password
 //                   TextFormField(
 //                     controller: _confirmPasswordController,
 //                     obscureText: true,
 //                     decoration: InputDecoration(
-//                       labelText: '${AppTranslations.get('confirm_password', locale, 'Confirmer le mot de passe')} *', // CORRECTION
+//                       labelText: '${AppTranslations.get('confirm_password', locale, 'Confirmer le mot de passe')} *',
 //                       prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
 //                     ),
 //                     validator: (value) {
@@ -466,11 +689,13 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // CORRECTION : Passer le locale à la méthode
 //                   _buildTownAutocomplete(locale),
 //                   const SizedBox(height: 30),
 
-//                   // Bouton d'inscription
+//                   // NOUVEAU : Section photo de profil
+//                   _buildImageUploadSection(locale),
+//                   const SizedBox(height: 24),
+
 //                   ElevatedButton(
 //                     onPressed: authProvider.isLoading ? null : _handleRegister,
 //                     style: ElevatedButton.styleFrom(
@@ -498,7 +723,6 @@
 //                   ),
 //                   const SizedBox(height: 20),
 
-//                   // Lien vers la connexion
 //                   Row(
 //                     mainAxisAlignment: MainAxisAlignment.center,
 //                     children: [
@@ -686,7 +910,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // === MÉTHODES EXISTANTES (légèrement modifiées) ===
+  // === MÉTHODES POUR LA GESTION DES VILLES ===
 
   Future<void> _loadAllTowns() async {
     try {
@@ -745,6 +969,8 @@ class _RegisterPageState extends State<RegisterPage> {
       _showTownDropdown = false;
     });
   }
+
+  // === MÉTHODE D'INSCRIPTION ===
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
@@ -925,7 +1151,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildTownAutocomplete(Locale locale) {
-    // Votre méthode existante inchangée
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1070,7 +1295,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 40),
 
-
                   // Champ Username
                   TextFormField(
                     controller: _usernameController,
@@ -1082,12 +1306,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value == null || value.isEmpty) {
                         return AppTranslations.get('required_username', locale, 'Le nom d\'utilisateur est requis');
                       }
+                      if (value.length < 3) {
+                        return AppTranslations.get('username_min_length', locale, 'Le nom d\'utilisateur doit contenir au moins 3 caractères');
+                      }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
 
-                  // ... (le reste de vos champs existants)
+                  // Champ Téléphone
                   TextFormField(
                     controller: _phoneController,
                     decoration: InputDecoration(
@@ -1099,11 +1326,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value == null || value.isEmpty) {
                         return AppTranslations.get('required_phone', locale, 'Le téléphone est requis');
                       }
+                      // Validation basique du format de téléphone
+                      if (!RegExp(r'^[+]?[\d\s\-\(\)]{8,}$').hasMatch(value)) {
+                        return AppTranslations.get('invalid_phone', locale, 'Numéro de téléphone invalide');
+                      }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
 
+                  // Champ Email
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -1123,6 +1355,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Champ Date de naissance
                   TextFormField(
                     controller: _birthdayController,
                     decoration: InputDecoration(
@@ -1130,6 +1363,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintText: 'YYYY-MM-DD',
                       prefixIcon: const Icon(Icons.cake, color: primaryBlue),
                     ),
+                    readOnly: true,
                     onTap: () async {
                       final date = await showDatePicker(
                         context: context,
@@ -1149,11 +1383,22 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
                         return AppTranslations.get('invalid_date_format', locale, 'Format invalide (YYYY-MM-DD)');
                       }
+                      
+                      // Validation de l'âge minimum (18 ans)
+                      final birthDate = DateTime.tryParse(value);
+                      if (birthDate != null) {
+                        final age = DateTime.now().difference(birthDate).inDays ~/ 365;
+                        if (age < 18) {
+                          return AppTranslations.get('minimum_age_required', locale, 'Vous devez avoir au moins 18 ans');
+                        }
+                      }
+                      
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
 
+                  // Champ Genre
                   DropdownButtonFormField<String>(
                     value: _selectedGender,
                     decoration: InputDecoration(
@@ -1174,9 +1419,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         _selectedGender = newValue;
                       });
                     },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppTranslations.get('required_gender', locale, 'Veuillez sélectionner votre genre');
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
+                  // Champ Mot de passe
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
@@ -1196,6 +1448,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Champ Confirmation mot de passe
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: true,
@@ -1215,13 +1468,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Autocomplete des villes
                   _buildTownAutocomplete(locale),
                   const SizedBox(height: 30),
 
-                  // NOUVEAU : Section photo de profil
+                  // Section photo de profil
                   _buildImageUploadSection(locale),
                   const SizedBox(height: 24),
 
+                  // Bouton d'inscription
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
@@ -1249,6 +1504,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Lien vers la connexion
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

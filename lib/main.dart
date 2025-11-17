@@ -414,6 +414,7 @@ import 'pages/camera_page.dart';
 import 'pages/market_page.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart'; 
+import 'pages/profile_page.dart';
 import 'pages/register_page.dart'; 
 import 'pages/forgot_password_page.dart';
 import 'pages/property_detail_page.dart';
@@ -482,6 +483,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/forgot-password': (context) => const ForgotPasswordPage(),
+        '/profile': (context) => const ProfilePage(),
         
         '/property-detail': (context) {
           final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
@@ -636,12 +638,13 @@ class _MainScreenState extends State<MainScreen> {
                 if (value == 'logout') {
                   _showLogoutConfirmation(context, locale);
                 } else if (value == 'profile') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(AppTranslations.get('profile_coming_soon', locale, 'Profil - Bientôt disponible')),
-                      backgroundColor: AppThemes.getSuccessColor(context),
-                    ),
-                  );
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   SnackBar(
+                  //     content: Text(AppTranslations.get('profile_coming_soon', locale, 'Profil - Bientôt disponible')),
+                  //     backgroundColor: AppThemes.getSuccessColor(context),
+                  //   ),
+                  // );
+                  Navigator.pushNamed(context, '/profile');
                 }
               },
               itemBuilder: (BuildContext context) => [

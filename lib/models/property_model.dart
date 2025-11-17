@@ -1,5 +1,7 @@
 // // lib/models/property_model.dart
 
+// import 'package:flutter/material.dart';
+
 // class Category {
 //   final String id;
 //   final String name;
@@ -70,7 +72,7 @@
 //   final Town town;
 //   final Category category;
 
-//   // Champs de détail supplémentaires (utilisés dans PropertyDetailPage)
+//   // Champs de détail supplémentaires
 //   final String refNumber;
 //   final int livingRoomsNb;
 //   final bool hasInternalKitchen;
@@ -80,10 +82,18 @@
 //   final bool hasSecurityGuards;
 //   final bool hasBalcony;
   
-//   // NOUVEAU : Champ pour l'ID du propriétaire (nécessaire pour le signalement)
+//   // Champ pour l'ID du propriétaire
 //   final String ownerId;
   
-//   // NOTE: Les champs 'nb_visite' et 'compartment_number' sont ignorés pour la simplicité de ce modèle.
+//   // NOUVEAU : Champs pour la localisation
+//   final List<String> location;
+//   final double? latitude;
+//   final double? longitude;
+
+//   // NOUVEAUX CHAMPS : Services et état
+//   final String waterSupply;
+//   final String electricalConnection;
+//   final int compartmentNumber;
 
 //   Property({
 //     required this.id,
@@ -100,7 +110,6 @@
 //     required this.status,
 //     required this.town,
 //     required this.category,
-//     // Champs de détail
 //     required this.refNumber,
 //     required this.livingRoomsNb,
 //     required this.hasInternalKitchen,
@@ -110,24 +119,32 @@
 //     required this.hasSecurityGuards,
 //     required this.hasBalcony,
 //     required this.ownerId,
+//     // NOUVEAU : Localisation
+//     required this.location,
+//     this.latitude,
+//     this.longitude,
+//     // NOUVEAUX CHAMPS : Services et état
+//     required this.waterSupply,
+//     required this.electricalConnection,
+//     required this.compartmentNumber,
 //   });
 
 //   factory Property.fromJson(Map<String, dynamic> json) {
 //     // 1. Gestion des listes d'images
 //     List<dynamic> otherImagesJson = json['other_images'] ?? [];
 //     List<String> otherImages = otherImagesJson
-//         .where((e) => e != null) // Assure qu'aucun élément null ne passe
+//         .where((e) => e != null)
 //         .map((e) => e.toString())
 //         .toList();
 
-//     // 2. Gestion robuste des champs numériques/booléens (pour List ET Detail)
+//     // 2. Gestion robuste des champs numériques/booléens
 //     final price = (json['monthly_price'] as num?)?.toInt() ?? 0;
 //     final areaValue = (json['area'] as num?)?.toInt() ?? 0;
 //     final rooms = (json['rooms_nb'] as num?)?.toInt() ?? 0;
 //     final bathrooms = (json['bathrooms_nb'] as num?)?.toInt() ?? 0;
     
-//     // Ces champs peuvent être absents dans la réponse de la LISTE, d'où les valeurs par défaut.
 //     final livingRooms = (json['living_rooms_nb'] as num?)?.toInt() ?? 0; 
+//     final compartmentNumber = (json['compartment_number'] as num?)?.toInt() ?? 0;
     
 //     final isCertified = json['certified'] as bool? ?? false;
 //     final hasIntKitchen = json['has_internal_kitchen'] as bool? ?? false;
@@ -137,19 +154,38 @@
 //     final hasSecurity = json['has_security_guards'] as bool? ?? false;
 //     final hasBaly = json['has_balcony'] as bool? ?? false;
 
-//     // La description peut être longue ou manquante dans la liste, on la laisse telle quelle
 //     final descriptionValue = json['description'] as String? ?? 'Description non disponible.';
 
-//     // NOUVEAU : Récupération de l'ID du propriétaire
-//     // Selon votre réponse API, le propriétaire peut être dans 'owner_id' ou dans 'owner'
+//     // 3. Gestion de l'ID du propriétaire
 //     String ownerId;
 //     if (json['owner_id'] != null) {
 //       ownerId = json['owner_id'] as String;
 //     } else if (json['owner'] != null && json['owner'] is Map<String, dynamic>) {
 //       ownerId = (json['owner'] as Map<String, dynamic>)['id'] as String? ?? '';
 //     } else {
-//       ownerId = ''; // Valeur par défaut si non trouvé
+//       ownerId = '';
 //     }
+
+//     // 4. NOUVEAU : Gestion de la localisation
+//     List<dynamic> locationJson = json['location'] ?? [];
+//     List<String> locationList = locationJson.map((e) => e.toString()).toList();
+    
+//     // Extraction des coordonnées GPS
+//     double? parsedLatitude;
+//     double? parsedLongitude;
+    
+//     if (locationList.length >= 3) {
+//       try {
+//         parsedLatitude = double.tryParse(locationList[1]); // Index 1 = latitude
+//         parsedLongitude = double.tryParse(locationList[2]); // Index 2 = longitude
+//       } catch (e) {
+//         debugPrint("Erreur parsing coordonnées: $e");
+//       }
+//     }
+
+//     // 5. NOUVEAUX CHAMPS : Services et état
+//     final waterSupply = json['water_supply'] as String? ?? 'not_available';
+//     final electricalConnection = json['electrical_connection'] as String? ?? 'not_available';
 
 //     return Property(
 //       id: json['id'] as String,
@@ -165,12 +201,11 @@
 //       mainImage: json['main_image'] as String? ?? '', 
 //       otherImages: otherImages,
 //       certified: isCertified,
-//       status: json['status'] as String? ?? 'N/A',
+//       status: json['status'] as String? ?? 'free',
       
 //       town: Town.fromJson(json['town'] as Map<String, dynamic>),
 //       category: Category.fromJson(json['category'] as Map<String, dynamic>),
       
-//       // Champs de détail robustes (prend 'N/A' si non trouvé dans la liste)
 //       refNumber: json['refnumber'] as String? ?? 'N/A',
 //       livingRoomsNb: livingRooms,
 //       hasInternalKitchen: hasIntKitchen,
@@ -180,13 +215,25 @@
 //       hasSecurityGuards: hasSecurity,
 //       hasBalcony: hasBaly,
       
-//       // NOUVEAU : ID du propriétaire
 //       ownerId: ownerId,
+      
+//       // NOUVEAU : Localisation
+//       location: locationList,
+//       latitude: parsedLatitude,
+//       longitude: parsedLongitude,
+      
+//       // NOUVEAUX CHAMPS : Services et état
+//       waterSupply: waterSupply,
+//       electricalConnection: electricalConnection,
+//       compartmentNumber: compartmentNumber,
 //     );
 //   }
+
+//   // Méthode utilitaire pour vérifier si la localisation est disponible
+//   bool get hasValidLocation => latitude != null && longitude != null;
 // }
 
-// // Modèle pour la réponse paginée de la liste des propriétés (pour HomePage)
+// // Modèle pour la réponse paginée
 // class PropertyListResponse {
 //   final List<Property> records;
 //   final int totalRecords;
@@ -214,36 +261,9 @@
 // }
 
 // lib/models/property_model.dart
-
 import 'package:flutter/material.dart';
-
-class Category {
-  final String id;
-  final String name;
-
-  Category({required this.id, required this.name});
-
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json['id'] as String,
-      name: json['name'] as String,
-    );
-  }
-}
-
-class Town {
-  final String id;
-  final String name;
-
-  Town({required this.id, required this.name});
-
-  factory Town.fromJson(Map<String, dynamic> json) {
-    return Town(
-      id: json['id'] as String,
-      name: json['name'] as String,
-    );
-  }
-}
+import 'town.dart'; // Import depuis le fichier dédié
+import 'category.dart'; // Import depuis le fichier dédié
 
 class Favorite {
   final String id;
@@ -269,6 +289,16 @@ class Favorite {
       active: json['active'] as bool? ?? true,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'property_id': propertyId,
+      'created_by': createdById,
+      'refnumber': refNumber,
+      'active': active,
+    };
+  }
 }
 
 class Property {
@@ -284,8 +314,8 @@ class Property {
   final List<String> otherImages;
   final bool certified;
   final String status;
-  final Town town;
-  final Category category;
+  final Town town; // Utilise la classe Town du fichier town.dart
+  final Category category; // Utilise la classe Category du fichier category.dart
 
   // Champs de détail supplémentaires
   final String refNumber;
@@ -304,6 +334,11 @@ class Property {
   final List<String> location;
   final double? latitude;
   final double? longitude;
+
+  // NOUVEAUX CHAMPS : Services et état
+  final String waterSupply;
+  final String electricalConnection;
+  final int compartmentNumber;
 
   Property({
     required this.id,
@@ -333,6 +368,10 @@ class Property {
     required this.location,
     this.latitude,
     this.longitude,
+    // NOUVEAUX CHAMPS : Services et état
+    required this.waterSupply,
+    required this.electricalConnection,
+    required this.compartmentNumber,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -350,6 +389,7 @@ class Property {
     final bathrooms = (json['bathrooms_nb'] as num?)?.toInt() ?? 0;
     
     final livingRooms = (json['living_rooms_nb'] as num?)?.toInt() ?? 0; 
+    final compartmentNumber = (json['compartment_number'] as num?)?.toInt() ?? 0;
     
     final isCertified = json['certified'] as bool? ?? false;
     final hasIntKitchen = json['has_internal_kitchen'] as bool? ?? false;
@@ -388,6 +428,10 @@ class Property {
       }
     }
 
+    // 5. NOUVEAUX CHAMPS : Services et état
+    final waterSupply = json['water_supply'] as String? ?? 'not_available';
+    final electricalConnection = json['electrical_connection'] as String? ?? 'not_available';
+
     return Property(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -402,7 +446,7 @@ class Property {
       mainImage: json['main_image'] as String? ?? '', 
       otherImages: otherImages,
       certified: isCertified,
-      status: json['status'] as String? ?? 'N/A',
+      status: json['status'] as String? ?? 'free',
       
       town: Town.fromJson(json['town'] as Map<String, dynamic>),
       category: Category.fromJson(json['category'] as Map<String, dynamic>),
@@ -422,11 +466,144 @@ class Property {
       location: locationList,
       latitude: parsedLatitude,
       longitude: parsedLongitude,
+      
+      // NOUVEAUX CHAMPS : Services et état
+      waterSupply: waterSupply,
+      electricalConnection: electricalConnection,
+      compartmentNumber: compartmentNumber,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'address': address,
+      'monthly_price': monthlyPrice,
+      'area': area,
+      'rooms_nb': roomsNb,
+      'bathrooms_nb': bathroomsNb,
+      'main_image': mainImage,
+      'other_images': otherImages,
+      'certified': certified,
+      'status': status,
+      'town': town.toJson(),
+      'category': category.toJson(),
+      'refnumber': refNumber,
+      'living_rooms_nb': livingRoomsNb,
+      'has_internal_kitchen': hasInternalKitchen,
+      'has_external_kitchen': hasExternalKitchen,
+      'has_a_parking': hasAParking,
+      'has_air_conditioning': hasAirConditioning,
+      'has_security_guards': hasSecurityGuards,
+      'has_balcony': hasBalcony,
+      'owner_id': ownerId,
+      'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
+      'water_supply': waterSupply,
+      'electrical_connection': electricalConnection,
+      'compartment_number': compartmentNumber,
+    };
   }
 
   // Méthode utilitaire pour vérifier si la localisation est disponible
   bool get hasValidLocation => latitude != null && longitude != null;
+
+  // Méthode pour créer une copie avec des valeurs modifiées
+  Property copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? address,
+    int? monthlyPrice,
+    int? area,
+    int? roomsNb,
+    int? bathroomsNb,
+    String? mainImage,
+    List<String>? otherImages,
+    bool? certified,
+    String? status,
+    Town? town,
+    Category? category,
+    String? refNumber,
+    int? livingRoomsNb,
+    bool? hasInternalKitchen,
+    bool? hasExternalKitchen,
+    bool? hasAParking,
+    bool? hasAirConditioning,
+    bool? hasSecurityGuards,
+    bool? hasBalcony,
+    String? ownerId,
+    List<String>? location,
+    double? latitude,
+    double? longitude,
+    String? waterSupply,
+    String? electricalConnection,
+    int? compartmentNumber,
+  }) {
+    return Property(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      address: address ?? this.address,
+      monthlyPrice: monthlyPrice ?? this.monthlyPrice,
+      area: area ?? this.area,
+      roomsNb: roomsNb ?? this.roomsNb,
+      bathroomsNb: bathroomsNb ?? this.bathroomsNb,
+      mainImage: mainImage ?? this.mainImage,
+      otherImages: otherImages ?? this.otherImages,
+      certified: certified ?? this.certified,
+      status: status ?? this.status,
+      town: town ?? this.town,
+      category: category ?? this.category,
+      refNumber: refNumber ?? this.refNumber,
+      livingRoomsNb: livingRoomsNb ?? this.livingRoomsNb,
+      hasInternalKitchen: hasInternalKitchen ?? this.hasInternalKitchen,
+      hasExternalKitchen: hasExternalKitchen ?? this.hasExternalKitchen,
+      hasAParking: hasAParking ?? this.hasAParking,
+      hasAirConditioning: hasAirConditioning ?? this.hasAirConditioning,
+      hasSecurityGuards: hasSecurityGuards ?? this.hasSecurityGuards,
+      hasBalcony: hasBalcony ?? this.hasBalcony,
+      ownerId: ownerId ?? this.ownerId,
+      location: location ?? this.location,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      waterSupply: waterSupply ?? this.waterSupply,
+      electricalConnection: electricalConnection ?? this.electricalConnection,
+      compartmentNumber: compartmentNumber ?? this.compartmentNumber,
+    );
+  }
+
+  // Méthode pour obtenir le prix formaté
+  String get formattedPrice {
+    return '$monthlyPrice FCFA/mois';
+  }
+
+  // Méthode pour obtenir la surface formatée
+  String get formattedArea {
+    return '$area m²';
+  }
+
+  // Méthode pour vérifier si la propriété est disponible
+  bool get isAvailable {
+    return status == 'free' || status == 'available';
+  }
+
+  // Méthode pour obtenir les équipements sous forme de liste
+  List<String> get amenities {
+    final List<String> amenitiesList = [];
+    
+    if (hasInternalKitchen) amenitiesList.add('Cuisine interne');
+    if (hasExternalKitchen) amenitiesList.add('Cuisine externe');
+    if (hasAParking) amenitiesList.add('Parking');
+    if (hasAirConditioning) amenitiesList.add('Climatisation');
+    if (hasSecurityGuards) amenitiesList.add('Gardiennage');
+    if (hasBalcony) amenitiesList.add('Balcon');
+    
+    return amenitiesList;
+  }
 }
 
 // Modèle pour la réponse paginée
@@ -453,5 +630,16 @@ class PropertyListResponse {
       totalPages: metadata['total_pages'] as int,
       currentPage: metadata['current_page'] as int,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'records': records.map((property) => property.toJson()).toList(),
+      'metadata': {
+        'total_records': totalRecords,
+        'total_pages': totalPages,
+        'current_page': currentPage,
+      },
+    };
   }
 }

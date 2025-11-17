@@ -8,8 +8,8 @@
 // import '../providers/auth_provider.dart';
 // import '../constants/app_translations.dart';
 // import '../constants/app_themes.dart';
-// import 'simple_image_viewer_screen.dart'; // Import de la visionneuse simple
-// import '../widgets/property_map_widget.dart'; 
+// import 'simple_image_viewer_screen.dart';
+// import '../widgets/property_map_widget.dart'; // NOUVEAU : Import du widget carte
 
 // class PropertyDetailPage extends StatefulWidget {
 //   final String propertyId;
@@ -74,7 +74,6 @@
 
 //   // === MÉTHODE POUR LA VISIONNEUSE D'IMAGES ===
   
-//   /// Ouvre une image en plein écran avec navigation
 //   void _openImageFullScreen(List<String> images, int initialIndex, BuildContext context) {
 //     Navigator.of(context).push(
 //       MaterialPageRoute(
@@ -82,6 +81,35 @@
 //           images: images,
 //           initialIndex: initialIndex,
 //           propertyTitle: _property?.title ?? 'Galerie',
+//         ),
+//       ),
+//     );
+//   }
+
+//   // === MÉTHODE POUR LA CARTE EN PLEIN ÉCRAN ===
+  
+//   void _openFullScreenMap(BuildContext context, Property property) {
+//     if (!property.hasValidLocation) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text('Localisation non disponible'),
+//           backgroundColor: AppThemes.getWarningColor(context),
+//         ),
+//       );
+//       return;
+//     }
+
+//     Navigator.of(context).push(
+//       MaterialPageRoute(
+//         builder: (context) => Scaffold(
+//           appBar: AppBar(
+//             title: Text('Localisation - ${property.title}'),
+//           ),
+//           body: PropertyMapWidget(
+//             property: property,
+//             height: MediaQuery.of(context).size.height,
+//             interactive: true,
+//           ),
 //         ),
 //       ),
 //     );
@@ -280,7 +308,6 @@
 
 //   // === MÉTHODES POUR L'UI ===
 
-//   /// Construit un élément de pill (chambre, salle de bain, etc.)
 //   Widget _buildPillItem(BuildContext context, IconData icon, String value, String label) {
 //     final Color accentColor = Theme.of(context).colorScheme.secondary;
     
@@ -301,7 +328,6 @@
 //     );
 //   }
 
-//   /// Construit la section des caractéristiques principales
 //   Widget _buildInfoPills(BuildContext context, Property property) {
 //     return Padding(
 //       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -317,7 +343,6 @@
 //     );
 //   }
 
-//   /// Construit la section des équipements
 //   Widget _buildFeaturesSection(BuildContext context, Locale locale, Property property) {
 //     final Color accentColor = Theme.of(context).colorScheme.secondary;
     
@@ -378,7 +403,6 @@
 //     );
 //   }
 
-//   /// Construit la galerie d'images AVEC CLIC POUR PLEIN ÉCRAN
 //   Widget _buildImageGallery(Property property) {
 //     final allImages = [property.mainImage, ...property.otherImages];
 //     final displayImages = allImages.where((url) => url.isNotEmpty).toList();
@@ -415,7 +439,6 @@
 //                 borderRadius: BorderRadius.circular(12),
 //                 child: Stack(
 //                   children: [
-//                     // Image principale
 //                     Image.network(
 //                       displayImages[index],
 //                       width: 120,
@@ -448,7 +471,6 @@
 //                         );
 //                       },
 //                     ),
-//                     // Overlay au survol
 //                     Positioned.fill(
 //                       child: Container(
 //                         decoration: BoxDecoration(
@@ -472,117 +494,183 @@
 //     );
 //   }
 
-//   /// Construit la barre d'application avec le badge de certification VERT
-// Widget _buildAppBar(Property property, Color accentColor, Locale locale) {
-//   return SliverAppBar(
-//     expandedHeight: 300.0,
-//     pinned: true,
-//     title: Row(
-//       children: [
-//         Expanded(
-//           child: Text(
-//             property.title,
-//             style: const TextStyle(
-//               color: Colors.white,
-//               fontWeight: FontWeight.w600,
+//   // NOUVEAU : Section carte
+//   Widget _buildMapSection(BuildContext context, Locale locale, Property property) {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Row(
+//             children: [
+//               Icon(
+//                 Icons.map,
+//                 color: Theme.of(context).colorScheme.secondary,
+//               ),
+//               const SizedBox(width: 8),
+//               Text(
+//                 AppTranslations.get('location', locale, 'Localisation'),
+//                 style: Theme.of(context).textTheme.titleLarge,
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 15),
+          
+//           // Widget carte cliquable pour plein écran
+//           GestureDetector(
+//             onTap: () => _openFullScreenMap(context, property),
+//             child: PropertyMapWidget(
+//               property: property,
+//               height: 200,
+//               interactive: false,
 //             ),
 //           ),
-//         ),
-//         if (property.certified)
-//           Container(
-//             margin: const EdgeInsets.only(left: 8),
-//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-//             decoration: BoxDecoration(
-//               color: AppThemes.getCertifiedColor(context).withOpacity(0.9),
-//               borderRadius: BorderRadius.circular(12),
-//               boxShadow: [
-//                 BoxShadow(
-//                   color: Colors.black.withOpacity(0.2),
-//                   blurRadius: 4,
-//                   offset: const Offset(0, 2),
+          
+//           // Adresse détaillée
+//           if (property.location.isNotEmpty) ...[
+//             const SizedBox(height: 12),
+//             Container(
+//               padding: const EdgeInsets.all(12),
+//               decoration: BoxDecoration(
+//                 color: Theme.of(context).cardColor,
+//                 borderRadius: BorderRadius.circular(8),
+//                 border: Border.all(
+//                   color: Theme.of(context).dividerColor,
 //                 ),
-//               ],
-//             ),
-//             child: Row(
-//               mainAxisSize: MainAxisSize.min,
-//               children: [
-//                 const Icon(
-//                   Icons.verified,
-//                   color: Colors.white,
-//                   size: 16,
-//                 ),
-//                 const SizedBox(width: 4),
-//                 Text(
-//                   AppTranslations.get('certified', locale, 'Certifié'),
-//                   style: const TextStyle(
-//                     color: Colors.white,
-//                     fontSize: 12,
-//                     fontWeight: FontWeight.w600,
+//               ),
+//               child: Row(
+//                 children: [
+//                   Icon(
+//                     Icons.location_on,
+//                     color: Theme.of(context).colorScheme.secondary,
+//                     size: 20,
 //                   ),
-//                 ),
-//               ],
+//                   const SizedBox(width: 12),
+//                   Expanded(
+//                     child: Text(
+//                       property.location[0],
+//                       style: Theme.of(context).textTheme.bodyMedium,
+//                     ),
+//                   ),
+//                 ],
+//               ),
 //             ),
-//           ),
-//       ],
-//     ),
-//     flexibleSpace: GestureDetector(
-//       onTap: () {
-//         final allImages = [property.mainImage, ...property.otherImages];
-//         final displayImages = allImages.where((url) => url.isNotEmpty).toList();
-//         if (displayImages.isNotEmpty) {
-//           _openImageFullScreen(displayImages, 0, context);
-//         }
-//       },
-//       child: Container( // Ajout d'un Container pour contenir l'image
-//         width: double.infinity, // Prend toute la largeur
-//         height: double.infinity, // Prend toute la hauteur
-//         child: Image.network(
-//           property.mainImage,
-//           fit: BoxFit.cover, // Couvre tout l'espace sans déborder
-//           errorBuilder: (context, error, stackTrace) => Container(
-//             color: Theme.of(context).dividerColor,
-//             alignment: Alignment.center,
-//             child: Icon(
-//               Icons.image_not_supported,
-//               size: 80,
-//               color: Theme.of(context).hintColor,
-//             ),
-//           ),
-//         ),
-//       ),
-//     ),
-//     actions: [
-//       IconButton(
-//         icon: Icon(
-//           _isFavorite ? Icons.favorite : Icons.favorite_border,
-//           color: _isFavorite ? Colors.red : Colors.white,
-//         ),
-//         onPressed: () => _handleFavoriteToggle(context, locale),
-//       ),
-//       PopupMenuButton<String>(
-//         icon: const Icon(Icons.more_vert, color: Colors.white),
-//         onSelected: (value) {
-//           if (value == 'report_property') {
-//             _showReportDialog(context, locale, isUserReport: false);
-//           } else if (value == 'report_user') {
-//             _showReportDialog(context, locale, isUserReport: true);
-//           }
-//         },
-//         itemBuilder: (BuildContext context) => [
-//           PopupMenuItem(
-//             value: 'report_property',
-//             child: Text(AppTranslations.get('report_property', locale, 'Signaler la propriété')),
-//           ),
-//           PopupMenuItem(
-//             value: 'report_user',
-//             child: Text(AppTranslations.get('report_user', locale, 'Signaler l\'utilisateur')),
-//           ),
+//           ],
 //         ],
 //       ),
-//     ],
-//   );
-// }
-//   /// Construit la section prix et localisation
+//     );
+//   }
+
+//   Widget _buildAppBar(Property property, Color accentColor, Locale locale) {
+//     return SliverAppBar(
+//       expandedHeight: 300.0,
+//       pinned: true,
+//       title: Row(
+//         children: [
+//           Expanded(
+//             child: Text(
+//               property.title,
+//               style: const TextStyle(
+//                 color: Colors.white,
+//                 fontWeight: FontWeight.w600,
+//               ),
+//             ),
+//           ),
+//           if (property.certified)
+//             Container(
+//               margin: const EdgeInsets.only(left: 8),
+//               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+//               decoration: BoxDecoration(
+//                 color: AppThemes.getCertifiedColor(context).withOpacity(0.9),
+//                 borderRadius: BorderRadius.circular(12),
+//                 boxShadow: [
+//                   BoxShadow(
+//                     color: Colors.black.withOpacity(0.2),
+//                     blurRadius: 4,
+//                     offset: const Offset(0, 2),
+//                   ),
+//                 ],
+//               ),
+//               child: Row(
+//                 mainAxisSize: MainAxisSize.min,
+//                 children: [
+//                   const Icon(
+//                     Icons.verified,
+//                     color: Colors.white,
+//                     size: 16,
+//                   ),
+//                   const SizedBox(width: 4),
+//                   Text(
+//                     AppTranslations.get('certified', locale, 'Certifié'),
+//                     style: const TextStyle(
+//                       color: Colors.white,
+//                       fontSize: 12,
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//         ],
+//       ),
+//       flexibleSpace: GestureDetector(
+//         onTap: () {
+//           final allImages = [property.mainImage, ...property.otherImages];
+//           final displayImages = allImages.where((url) => url.isNotEmpty).toList();
+//           if (displayImages.isNotEmpty) {
+//             _openImageFullScreen(displayImages, 0, context);
+//           }
+//         },
+//         child: Container(
+//           width: double.infinity,
+//           height: double.infinity,
+//           child: Image.network(
+//             property.mainImage,
+//             fit: BoxFit.cover,
+//             errorBuilder: (context, error, stackTrace) => Container(
+//               color: Theme.of(context).dividerColor,
+//               alignment: Alignment.center,
+//               child: Icon(
+//                 Icons.image_not_supported,
+//                 size: 80,
+//                 color: Theme.of(context).hintColor,
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//       actions: [
+//         IconButton(
+//           icon: Icon(
+//             _isFavorite ? Icons.favorite : Icons.favorite_border,
+//             color: _isFavorite ? Colors.red : Colors.white,
+//           ),
+//           onPressed: () => _handleFavoriteToggle(context, locale),
+//         ),
+//         PopupMenuButton<String>(
+//           icon: const Icon(Icons.more_vert, color: Colors.white),
+//           onSelected: (value) {
+//             if (value == 'report_property') {
+//               _showReportDialog(context, locale, isUserReport: false);
+//             } else if (value == 'report_user') {
+//               _showReportDialog(context, locale, isUserReport: true);
+//             }
+//           },
+//           itemBuilder: (BuildContext context) => [
+//             PopupMenuItem(
+//               value: 'report_property',
+//               child: Text(AppTranslations.get('report_property', locale, 'Signaler la propriété')),
+//             ),
+//             PopupMenuItem(
+//               value: 'report_user',
+//               child: Text(AppTranslations.get('report_user', locale, 'Signaler l\'utilisateur')),
+//             ),
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+
 //   Widget _buildPriceLocationSection(BuildContext context, Property property) {
 //     return Padding(
 //       padding: const EdgeInsets.all(16.0),
@@ -630,7 +718,6 @@
 //     );
 //   }
 
-//   /// Construit la section description
 //   Widget _buildDescriptionSection(BuildContext context, Locale locale, Property property) {
 //     return Padding(
 //       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -654,7 +741,6 @@
 //     );
 //   }
 
-//   /// Construit la barre de contact en bas
 //   Widget _buildContactBar(BuildContext context, Locale locale, Color accentColor) {
 //     return Container(
 //       padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
@@ -795,12 +881,17 @@
                 
 //                 const SizedBox(height: 30),
 
+//                 // NOUVEAU : Section carte
+//                 _buildMapSection(context, locale, property),
+                
+//                 const SizedBox(height: 30),
+
 //                 Padding(
 //                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
 //                   child: _buildFeaturesSection(context, locale, property),
 //                 ),
 
-//                 const SizedBox(height: 80), // Espace pour le bottom navigation
+//                 const SizedBox(height: 80),
 //               ],
 //             ),
 //           ),
@@ -822,7 +913,7 @@ import '../providers/auth_provider.dart';
 import '../constants/app_translations.dart';
 import '../constants/app_themes.dart';
 import 'simple_image_viewer_screen.dart';
-import '../widgets/property_map_widget.dart'; // NOUVEAU : Import du widget carte
+import '../widgets/property_map_widget.dart';
 
 class PropertyDetailPage extends StatefulWidget {
   final String propertyId;
@@ -885,6 +976,68 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     }
   }
 
+  // === MÉTHODES POUR LES TRADUCTIONS DES NOUVEAUX CHAMPS ===
+
+  /// Retourne la traduction pour l'alimentation en eau
+  String _getWaterSupplyTranslation(Locale locale, String waterSupply) {
+    final translations = {
+      'not_available': AppTranslations.get('water_not_available', locale, 'Non disponible'),
+      'connected_public_supply': AppTranslations.get('water_public_supply', locale, 'Réseau public'),
+      'stand_alone_system': AppTranslations.get('water_stand_alone', locale, 'Système autonome'),
+      'stand_alone_system_with_mains_connection': AppTranslations.get('water_hybrid', locale, 'Système hybride'),
+    };
+    return translations[waterSupply] ?? waterSupply;
+  }
+
+  /// Retourne la traduction pour la connexion électrique
+  String _getElectricalConnectionTranslation(Locale locale, String electricalConnection) {
+    final translations = {
+      'not_available': AppTranslations.get('electric_not_available', locale, 'Non disponible'),
+      'connected_public_supply': AppTranslations.get('electric_public_supply', locale, 'Réseau public'),
+      'stand_alone_system': AppTranslations.get('electric_stand_alone', locale, 'Système autonome'),
+      'stand_alone_system_with_mains_connection': AppTranslations.get('electric_hybrid', locale, 'Système hybride'),
+    };
+    return translations[electricalConnection] ?? electricalConnection;
+  }
+
+  /// Retourne la traduction pour le statut
+  String _getStatusTranslation(Locale locale, String status) {
+    final translations = {
+      'free': AppTranslations.get('status_free', locale, 'Libre'),
+      'busy': AppTranslations.get('status_busy', locale, 'Occupé'),
+      'prev_advise': AppTranslations.get('status_prev_advise', locale, 'Préavis'),
+    };
+    return translations[status] ?? status;
+  }
+
+  /// Retourne la couleur pour le statut
+  Color _getStatusColor(BuildContext context, String status) {
+    switch (status) {
+      case 'free':
+        return AppThemes.getSuccessColor(context);
+      case 'busy':
+        return AppThemes.getErrorColor(context);
+      case 'prev_advise':
+        return AppThemes.getWarningColor(context);
+      default:
+        return Theme.of(context).hintColor;
+    }
+  }
+
+  /// Retourne l'icône pour le statut
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'free':
+        return Icons.check_circle;
+      case 'busy':
+        return Icons.do_not_disturb;
+      case 'prev_advise':
+        return Icons.access_time;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
   // === MÉTHODE POUR LA VISIONNEUSE D'IMAGES ===
   
   void _openImageFullScreen(List<String> images, int initialIndex, BuildContext context) {
@@ -905,7 +1058,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     if (!property.hasValidLocation) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Localisation non disponible'),
+          content: Text(AppTranslations.get('location_unavailable', Provider.of<SettingsProvider>(context).locale, 'Localisation non disponible')),
           backgroundColor: AppThemes.getWarningColor(context),
         ),
       );
@@ -916,7 +1069,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: Text('Localisation - ${property.title}'),
+            title: Text('${AppTranslations.get('location', Provider.of<SettingsProvider>(context).locale, 'Localisation')} - ${property.title}'),
           ),
           body: PropertyMapWidget(
             property: property,
@@ -1156,6 +1309,122 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     );
   }
 
+  // === NOUVELLE SECTION : SERVICES ET ÉTAT ===
+  
+  Widget _buildServicesAndStatusSection(BuildContext context, Locale locale, Property property) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppTranslations.get('services_status', locale, 'Services et État'),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 15),
+          
+          // Carte avec les informations de services
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Statut de la propriété
+                  _buildServiceItem(
+                    context,
+                    _getStatusIcon(property.status),
+                    _getStatusTranslation(locale, property.status),
+                    _getStatusColor(context, property.status),
+                    AppTranslations.get('status', locale, 'Statut'),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Alimentation en eau
+                  _buildServiceItem(
+                    context,
+                    Icons.water_drop,
+                    _getWaterSupplyTranslation(locale, property.waterSupply),
+                    Theme.of(context).colorScheme.secondary,
+                    AppTranslations.get('water_supply', locale, 'Alimentation en eau'),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Connexion électrique
+                  _buildServiceItem(
+                    context,
+                    Icons.bolt,
+                    _getElectricalConnectionTranslation(locale, property.electricalConnection),
+                    Theme.of(context).colorScheme.secondary,
+                    AppTranslations.get('electrical_connection', locale, 'Connexion électrique'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceItem(BuildContext context, IconData icon, String value, Color color, String label) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).hintColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFeaturesSection(BuildContext context, Locale locale, Property property) {
     final Color accentColor = Theme.of(context).colorScheme.secondary;
     
@@ -1307,7 +1576,6 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     );
   }
 
-  // NOUVEAU : Section carte
   Widget _buildMapSection(BuildContext context, Locale locale, Property property) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -1683,6 +1951,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 _buildDescriptionSection(context, locale, property),
                 const SizedBox(height: 30),
 
+                // NOUVELLE SECTION : Services et État
+                _buildServicesAndStatusSection(context, locale, property),
+                const SizedBox(height: 30),
+
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0, bottom: 15),
                   child: Text(
@@ -1694,7 +1966,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 
                 const SizedBox(height: 30),
 
-                // NOUVEAU : Section carte
+                // Section carte
                 _buildMapSection(context, locale, property),
                 
                 const SizedBox(height: 30),
