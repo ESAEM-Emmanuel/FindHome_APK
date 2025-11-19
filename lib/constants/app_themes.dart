@@ -1,15 +1,19 @@
+
 // // lib/constants/app_themes.dart
 // import 'package:flutter/material.dart';
 
 // const Color primaryBlue = Color.fromARGB(255, 6, 143, 255);
 // const Color accentOrange = Color.fromARGB(255, 255, 81, 0);
+// const Color successGreen = Color.fromARGB(255, 76, 175, 80); // Vert pour succès/certification
+// const Color errorRed = Color.fromARGB(255, 244, 67, 54);    // Rouge pour erreurs
+// const Color warningOrange = Color.fromARGB(255, 255, 152, 0); // Orange pour avertissements
 
 // class AppThemes {
 //   static final ThemeData lightTheme = ThemeData(
 //     primaryColor: primaryBlue,
 //     scaffoldBackgroundColor: Colors.grey[50],
 //     useMaterial3: true,
-//     fontFamily: 'Roboto', // Exemple de police
+//     fontFamily: 'Roboto',
 //     colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
 //         .copyWith(
 //           secondary: accentOrange,
@@ -29,7 +33,7 @@
 //     floatingActionButtonTheme: const FloatingActionButtonThemeData(
 //       backgroundColor: accentOrange,
 //     ),
-//     inputDecorationTheme: InputDecorationTheme( // Style des champs de texte
+//     inputDecorationTheme: InputDecorationTheme(
 //       border: OutlineInputBorder(
 //         borderRadius: BorderRadius.circular(10),
 //         borderSide: BorderSide.none,
@@ -74,15 +78,33 @@
 //       labelStyle: const TextStyle(color: Colors.white70),
 //     ),
 //   );
+
+//   // Méthodes utilitaires pour accéder aux couleurs depuis n'importe où
+//   static Color getSuccessColor(BuildContext context) {
+//     return successGreen;
+//   }
+
+//   static Color getErrorColor(BuildContext context) {
+//     return errorRed;
+//   }
+
+//   static Color getWarningColor(BuildContext context) {
+//     return warningOrange;
+//   }
+
+//   static Color getCertifiedColor(BuildContext context) {
+//     return successGreen; // Même couleur que le succès pour la certification
+//   }
 // }
 // lib/constants/app_themes.dart
 import 'package:flutter/material.dart';
 
-const Color primaryBlue = Color.fromARGB(255, 6, 143, 255);
-const Color accentOrange = Color.fromARGB(255, 255, 81, 0);
-const Color successGreen = Color.fromARGB(255, 76, 175, 80); // Vert pour succès/certification
-const Color errorRed = Color.fromARGB(255, 244, 67, 54);    // Rouge pour erreurs
-const Color warningOrange = Color.fromARGB(255, 255, 152, 0); // Orange pour avertissements
+// Palette 2025
+const Color primaryBlue       = Color(0xFF0511F2); // #0511F2
+const Color accentOrange      = Color(0xFF05F2DB); // #05F2DB (remplace l’orange)
+const Color successGreen      = Color(0xFF3084F2); // #3084F2 (vert → bleu accent)
+const Color errorRed          = Color(0xFFFF5252); // inchangé, pas dans la palette
+const Color warningOrange     = Color(0xFF44C1F2); // #44C1F2 (orange → bleu clair)
 
 class AppThemes {
   static final ThemeData lightTheme = ThemeData(
@@ -115,13 +137,13 @@ class AppThemes {
         borderSide: BorderSide.none,
       ),
       filled: true,
-      fillColor: Colors.grey[100],
+      fillColor: const Color(0xFFF1F5FF), // légère teinte bleue
     ),
   );
 
   static final ThemeData darkTheme = ThemeData(
     primaryColor: primaryBlue,
-    scaffoldBackgroundColor: Colors.grey[900],
+    scaffoldBackgroundColor: const Color(0xFF0D0D0D), // #0D0D0D
     useMaterial3: true,
     fontFamily: 'Roboto',
     colorScheme: ColorScheme.fromSwatch(
@@ -129,7 +151,7 @@ class AppThemes {
         brightness: Brightness.dark,
       ).copyWith(
         secondary: accentOrange,
-        background: Colors.grey[900],
+        background: const Color(0xFF0D0D0D),
       ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.grey[850],
@@ -150,25 +172,14 @@ class AppThemes {
         borderSide: BorderSide.none,
       ),
       filled: true,
-      fillColor: Colors.grey[800],
+      fillColor: Colors.grey[850],
       labelStyle: const TextStyle(color: Colors.white70),
     ),
   );
 
   // Méthodes utilitaires pour accéder aux couleurs depuis n'importe où
-  static Color getSuccessColor(BuildContext context) {
-    return successGreen;
-  }
-
-  static Color getErrorColor(BuildContext context) {
-    return errorRed;
-  }
-
-  static Color getWarningColor(BuildContext context) {
-    return warningOrange;
-  }
-
-  static Color getCertifiedColor(BuildContext context) {
-    return successGreen; // Même couleur que le succès pour la certification
-  }
+  static Color getSuccessColor(BuildContext context) => successGreen;
+  static Color getErrorColor(BuildContext context) => errorRed;
+  static Color getWarningColor(BuildContext context) => warningOrange;
+  static Color getCertifiedColor(BuildContext context) => successGreen;
 }
