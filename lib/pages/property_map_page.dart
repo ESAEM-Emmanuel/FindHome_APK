@@ -1016,6 +1016,18 @@ class _PropertyMapPageState extends State<PropertyMapPage> {
 
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withOpacity(0.85),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         title: Text(AppTranslations.get('map_view', locale, 'Vue carte')),
         actions: [
           IconButton(

@@ -209,7 +209,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppTranslations.get('reset_email_sent_success', locale)),
-            backgroundColor: successGreen,
+            backgroundColor: successColor1,
           ),
         );
         Navigator.of(context).pop();
@@ -219,7 +219,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${AppTranslations.get('reset_email_error', locale)} : $e'),
-            backgroundColor: errorRed,
+            backgroundColor: errorColor1,
           ),
         );
       }
@@ -248,14 +248,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.lock_reset, size: 80, color: accentOrange),
+                Icon(Icons.lock_reset, size: 80, color: accentColor1),
                 const SizedBox(height: 16),
                 Text(
                   AppTranslations.get('forgot_password_title', locale),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: primaryBlue,
+                        color: primaryColor1,
                       ),
                 ),
                 const SizedBox(height: 8),
@@ -271,7 +271,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: AppTranslations.get('email', locale),
-                    prefixIcon: const Icon(Icons.email, color: primaryBlue),
+                    prefixIcon: const Icon(Icons.email, color: primaryColor1),
                   ),
                   validator: (v) => v!.isEmpty || !v.contains('@')
                       ? AppTranslations.get('email_validation_msg', locale)
@@ -282,7 +282,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 FilledButton(
                   onPressed: _isLoading ? null : _handleForgotPassword,
                   style: FilledButton.styleFrom(
-                    backgroundColor: primaryBlue,
+                    backgroundColor: primaryColor1,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),

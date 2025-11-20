@@ -758,7 +758,7 @@
 //           decoration: InputDecoration(
 //             labelText: '${AppTranslations.get('town', locale, 'Ville')} *',
 //             hintText: AppTranslations.get('search_town', locale, 'Rechercher une ville...'),
-//             prefixIcon: const Icon(Icons.location_city, color: primaryBlue),
+//             prefixIcon: const Icon(Icons.location_city, color: primaryColor1),
 //             suffixIcon: _selectedTown != null
 //                 ? IconButton(
 //                     icon: const Icon(Icons.clear, color: Colors.grey),
@@ -843,7 +843,7 @@
 //           decoration: InputDecoration(
 //             labelText: '${AppTranslations.get('category', locale, 'Catégorie')} *',
 //             hintText: AppTranslations.get('search_category', locale, 'Rechercher une catégorie...'),
-//             prefixIcon: const Icon(Icons.category, color: primaryBlue),
+//             prefixIcon: const Icon(Icons.category, color: primaryColor1),
 //             suffixIcon: _selectedCategory != null
 //                 ? IconButton(
 //                     icon: const Icon(Icons.clear, color: Colors.grey),
@@ -1562,7 +1562,7 @@
 //                 ElevatedButton(
 //                   onPressed: _isSubmitting ? null : _handleCreateProperty,
 //                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: primaryBlue,
+//                     backgroundColor: primaryColor1,
 //                     foregroundColor: Colors.white,
 //                     padding: const EdgeInsets.symmetric(vertical: 16),
 //                     shape: RoundedRectangleBorder(
@@ -2210,7 +2210,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
           decoration: InputDecoration(
             labelText: '${AppTranslations.get('town', locale, 'Ville')} *',
             hintText: AppTranslations.get('search_town', locale, 'Rechercher une ville...'),
-            prefixIcon: const Icon(Icons.location_city, color: primaryBlue),
+            prefixIcon: const Icon(Icons.location_city, color: primaryColor1),
             suffixIcon: _selectedTown != null
                 ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.grey),
@@ -2272,7 +2272,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
           decoration: InputDecoration(
             labelText: '${AppTranslations.get('category', locale, 'Catégorie')} *',
             hintText: AppTranslations.get('search_category', locale, 'Rechercher une catégorie...'),
-            prefixIcon: const Icon(Icons.category, color: primaryBlue),
+            prefixIcon: const Icon(Icons.category, color: primaryColor1),
             suffixIcon: _selectedCategory != null
                 ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.grey),

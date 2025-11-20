@@ -42,7 +42,7 @@
 //           ScaffoldMessenger.of(context).showSnackBar(
 //             SnackBar(
 //               content: Text(successMessage), 
-//               backgroundColor: primaryBlue,
+//               backgroundColor: primaryColor1,
 //               duration: const Duration(seconds: 2),
 //             ),
 //           );
@@ -106,7 +106,7 @@
 //                 // const Icon(
 //                 //   Icons.store_mall_directory_outlined,
 //                 //   size: 100,
-//                 //   color: primaryBlue,
+//                 //   color: primaryColor1,
 //                 // ),
 //                 // const SizedBox(height: 16),
 //                 Image.asset(
@@ -123,7 +123,7 @@
 //                   textAlign: TextAlign.center,
 //                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
 //                     fontWeight: FontWeight.bold,
-//                     color: primaryBlue,
+//                     color: primaryColor1,
 //                   ),
 //                 ),
 //                 const SizedBox(height: 8),
@@ -141,7 +141,7 @@
 //                   controller: _usernameController,
 //                   decoration: InputDecoration(
 //                     labelText: AppTranslations.get('username', locale, 'Nom d\'utilisateur'),
-//                     prefixIcon: const Icon(Icons.person_outline, color: primaryBlue),
+//                     prefixIcon: const Icon(Icons.person_outline, color: primaryColor1),
 //                   ),
 //                   validator: (value) {
 //                     if (value == null || value.isEmpty) {
@@ -158,7 +158,7 @@
 //                   obscureText: true,
 //                   decoration: InputDecoration(
 //                     labelText: AppTranslations.get('password', locale, 'Mot de passe'),
-//                     prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+//                     prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
 //                   ),
 //                   validator: (value) {
 //                     if (value == null || value.isEmpty) {
@@ -178,7 +178,7 @@
 //                     },
 //                     child: Text(
 //                       AppTranslations.get('forgot_password', locale, 'Mot de passe oublié ?'),
-//                       style: const TextStyle(color: accentOrange),
+//                       style: const TextStyle(color: accentColor1),
 //                     ),
 //                   ),
 //                 ),
@@ -188,7 +188,7 @@
 //                 ElevatedButton(
 //                   onPressed: _isLoading ? null : _handleLogin,
 //                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: primaryBlue,
+//                     backgroundColor: primaryColor1,
 //                     foregroundColor: Colors.white,
 //                     padding: const EdgeInsets.symmetric(vertical: 16),
 //                     shape: RoundedRectangleBorder(
@@ -223,7 +223,7 @@
 //                       },
 //                       child: Text(
 //                         AppTranslations.get('signup', locale, 'S\'inscrire'),
-//                         style: const TextStyle(color: accentOrange, fontWeight: FontWeight.bold),
+//                         style: const TextStyle(color: accentColor1, fontWeight: FontWeight.bold),
 //                       ),
 //                     ),
 //                   ],
@@ -277,7 +277,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${AppTranslations.get('login_failed', locale)} : $e'),
-            backgroundColor: errorRed,
+            backgroundColor: errorColor1,
           ),
         );
       }
@@ -321,7 +321,7 @@ class _LoginPageState extends State<LoginPage> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: primaryBlue,
+                        color: primaryColor1,
                       ),
                 ),
                 const SizedBox(height: 8),
@@ -337,7 +337,7 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _usernameController,
                   decoration: InputDecoration(
                     labelText: AppTranslations.get('username', locale),
-                    prefixIcon: const Icon(Icons.person_outline, color: primaryBlue),
+                    prefixIcon: const Icon(Icons.person_outline, color: primaryColor1),
                   ),
                   validator: (v) => v!.isEmpty ? AppTranslations.get('required_username', locale) : null,
                 ),
@@ -349,10 +349,10 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: AppTranslations.get('password', locale),
-                    prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+                    prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off,
-                          color: primaryBlue),
+                          color: primaryColor1),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
@@ -366,7 +366,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: TextButton(
                     onPressed: _isLoading ? null : () => Navigator.of(context).pushNamed('/forgot-password'),
                     child: Text(AppTranslations.get('forgot_password', locale),
-                        style: TextStyle(color: accentOrange)),
+                        style: TextStyle(color: accentColor1)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -375,7 +375,7 @@ class _LoginPageState extends State<LoginPage> {
                 FilledButton(
                   onPressed: _isLoading ? null : _handleLogin,
                   style: FilledButton.styleFrom(
-                    backgroundColor: primaryBlue,
+                    backgroundColor: primaryColor1,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -397,7 +397,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextButton(
                         onPressed: _isLoading ? null : () => Navigator.of(context).pushNamed('/register'),
                         child: Text(AppTranslations.get('signup', locale),
-                            style: const TextStyle(color: accentOrange, fontWeight: FontWeight.bold)),
+                            style: const TextStyle(color: accentColor1, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),

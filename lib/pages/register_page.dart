@@ -408,7 +408,7 @@
 //           decoration: InputDecoration(
 //             labelText: '${AppTranslations.get('town', locale, 'Ville')} *',
 //             hintText: AppTranslations.get('search_town', locale, 'Rechercher une ville...'),
-//             prefixIcon: const Icon(Icons.search, color: primaryBlue),
+//             prefixIcon: const Icon(Icons.search, color: primaryColor1),
 //             suffixIcon: _selectedTown != null
 //                 ? IconButton(
 //                     icon: const Icon(Icons.clear, color: Colors.grey),
@@ -521,7 +521,7 @@
 //                   const Icon(
 //                     Icons.person_add_alt_1,
 //                     size: 80,
-//                     color: primaryBlue,
+//                     color: primaryColor1,
 //                   ),
 //                   const SizedBox(height: 16),
                   
@@ -531,7 +531,7 @@
 //                     textAlign: TextAlign.center,
 //                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
 //                       fontWeight: FontWeight.bold,
-//                       color: primaryBlue,
+//                       color: primaryColor1,
 //                     ),
 //                   ),
 //                   const SizedBox(height: 8),
@@ -550,7 +550,7 @@
 //                     controller: _usernameController,
 //                     decoration: InputDecoration(
 //                       labelText: '${AppTranslations.get('username', locale, 'Nom d\'utilisateur')} *',
-//                       prefixIcon: const Icon(Icons.person_outline, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.person_outline, color: primaryColor1),
 //                     ),
 //                     validator: (value) {
 //                       if (value == null || value.isEmpty) {
@@ -566,7 +566,7 @@
 //                     controller: _phoneController,
 //                     decoration: InputDecoration(
 //                       labelText: '${AppTranslations.get('phone', locale, 'Téléphone')} *',
-//                       prefixIcon: const Icon(Icons.phone, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.phone, color: primaryColor1),
 //                     ),
 //                     keyboardType: TextInputType.phone,
 //                     validator: (value) {
@@ -582,7 +582,7 @@
 //                     controller: _emailController,
 //                     decoration: InputDecoration(
 //                       labelText: '${AppTranslations.get('email', locale, 'Email')} *',
-//                       prefixIcon: const Icon(Icons.email_outlined, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.email_outlined, color: primaryColor1),
 //                     ),
 //                     keyboardType: TextInputType.emailAddress,
 //                     validator: (value) {
@@ -602,7 +602,7 @@
 //                     decoration: InputDecoration(
 //                       labelText: '${AppTranslations.get('birthday', locale, 'Date de naissance')} *',
 //                       hintText: 'YYYY-MM-DD',
-//                       prefixIcon: const Icon(Icons.cake, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.cake, color: primaryColor1),
 //                     ),
 //                     onTap: () async {
 //                       final date = await showDatePicker(
@@ -632,7 +632,7 @@
 //                     value: _selectedGender,
 //                     decoration: InputDecoration(
 //                       labelText: AppTranslations.get('gender', locale, 'Genre'),
-//                       prefixIcon: const Icon(Icons.transgender, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.transgender, color: primaryColor1),
 //                     ),
 //                     items: _genders.map((String gender) {
 //                       return DropdownMenuItem<String>(
@@ -656,7 +656,7 @@
 //                     obscureText: true,
 //                     decoration: InputDecoration(
 //                       labelText: '${AppTranslations.get('password', locale, 'Mot de passe')} *',
-//                       prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
 //                     ),
 //                     validator: (value) {
 //                       if (value == null || value.isEmpty) {
@@ -675,7 +675,7 @@
 //                     obscureText: true,
 //                     decoration: InputDecoration(
 //                       labelText: '${AppTranslations.get('confirm_password', locale, 'Confirmer le mot de passe')} *',
-//                       prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+//                       prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
 //                     ),
 //                     validator: (value) {
 //                       if (value == null || value.isEmpty) {
@@ -699,7 +699,7 @@
 //                   ElevatedButton(
 //                     onPressed: authProvider.isLoading ? null : _handleRegister,
 //                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: primaryBlue,
+//                       backgroundColor: primaryColor1,
 //                       foregroundColor: Colors.white,
 //                       padding: const EdgeInsets.symmetric(vertical: 16),
 //                       shape: RoundedRectangleBorder(
@@ -733,7 +733,7 @@
 //                         },
 //                         child: Text(
 //                           AppTranslations.get('login', locale, 'Se connecter'),
-//                           style: const TextStyle(color: accentOrange, fontWeight: FontWeight.bold),
+//                           style: const TextStyle(color: accentColor1, fontWeight: FontWeight.bold),
 //                         ),
 //                       ),
 //                     ],
@@ -1159,7 +1159,7 @@ class _RegisterPageState extends State<RegisterPage> {
           decoration: InputDecoration(
             labelText: '${AppTranslations.get('town', locale, 'Ville')} *',
             hintText: AppTranslations.get('search_town', locale, 'Rechercher une ville...'),
-            prefixIcon: const Icon(Icons.search, color: primaryBlue),
+            prefixIcon: const Icon(Icons.search, color: primaryColor1),
             suffixIcon: _selectedTown != null
                 ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.grey),
@@ -1272,7 +1272,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const Icon(
                     Icons.person_add_alt_1,
                     size: 80,
-                    color: primaryBlue,
+                    color: primaryColor1,
                   ),
                   const SizedBox(height: 16),
                   
@@ -1282,7 +1282,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: primaryBlue,
+                      color: primaryColor1,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1300,7 +1300,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _usernameController,
                     decoration: InputDecoration(
                       labelText: '${AppTranslations.get('username', locale, 'Nom d\'utilisateur')} *',
-                      prefixIcon: const Icon(Icons.person_outline, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.person_outline, color: primaryColor1),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -1319,7 +1319,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _phoneController,
                     decoration: InputDecoration(
                       labelText: '${AppTranslations.get('phone', locale, 'Téléphone')} *',
-                      prefixIcon: const Icon(Icons.phone, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.phone, color: primaryColor1),
                     ),
                     keyboardType: TextInputType.phone,
                     validator: (value) {
@@ -1340,7 +1340,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _emailController,
                     decoration: InputDecoration(
                       labelText: '${AppTranslations.get('email', locale, 'Email')} *',
-                      prefixIcon: const Icon(Icons.email_outlined, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.email_outlined, color: primaryColor1),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
@@ -1361,7 +1361,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     decoration: InputDecoration(
                       labelText: '${AppTranslations.get('birthday', locale, 'Date de naissance')} *',
                       hintText: 'YYYY-MM-DD',
-                      prefixIcon: const Icon(Icons.cake, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.cake, color: primaryColor1),
                     ),
                     readOnly: true,
                     onTap: () async {
@@ -1403,7 +1403,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     value: _selectedGender,
                     decoration: InputDecoration(
                       labelText: AppTranslations.get('gender', locale, 'Genre'),
-                      prefixIcon: const Icon(Icons.transgender, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.transgender, color: primaryColor1),
                     ),
                     items: _genders.map((String gender) {
                       return DropdownMenuItem<String>(
@@ -1434,7 +1434,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: '${AppTranslations.get('password', locale, 'Mot de passe')} *',
-                      prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -1454,7 +1454,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: '${AppTranslations.get('confirm_password', locale, 'Confirmer le mot de passe')} *',
-                      prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+                      prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -1480,7 +1480,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryBlue,
+                      backgroundColor: primaryColor1,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -1515,7 +1515,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                         child: Text(
                           AppTranslations.get('login', locale, 'Se connecter'),
-                          style: const TextStyle(color: accentOrange, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: accentColor1, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],

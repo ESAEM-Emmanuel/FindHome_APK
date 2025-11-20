@@ -1435,7 +1435,7 @@ class _ProfilePageState extends State<ProfilePage>
                   backgroundImage: (u.image != null && u.image!.isNotEmpty)
                       ? NetworkImage(u.image!)
                       : const AssetImage('assets/default_avatar.png') as ImageProvider,
-                  backgroundColor: primaryBlue.withOpacity(.1),
+                  backgroundColor: primaryColor1.withOpacity(.1),
                 ),
                 const SizedBox(height: 12),
                 Text(u.username ?? 'N/A',
@@ -1446,8 +1446,8 @@ class _ProfilePageState extends State<ProfilePage>
                   const SizedBox(height: 6),
                   Chip(
                     label: Text(u.role!.toUpperCase()),
-                    backgroundColor: accentOrange.withOpacity(.15),
-                    labelStyle: TextStyle(color: accentOrange, fontSize: 12),
+                    backgroundColor: accentColor1.withOpacity(.15),
+                    labelStyle: TextStyle(color: accentColor1, fontSize: 12),
                   ),
                 ],
               ],
@@ -1505,7 +1505,7 @@ class _ProfilePageState extends State<ProfilePage>
         Text(title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: primaryBlue,
+                  color: primaryColor1,
                 )),
         const SizedBox(height: 8),
         Card(
@@ -1525,7 +1525,7 @@ class _ProfilePageState extends State<ProfilePage>
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: primaryBlue),
+          Icon(icon, size: 20, color: primaryColor1),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1563,7 +1563,7 @@ class _ProfilePageState extends State<ProfilePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(AppTranslations.get('profile_picture', l, 'Photo de profil'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryBlue)),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor1)),
                   const SizedBox(height: 16),
                   _imageSection(l),
                 ],
@@ -1582,13 +1582,13 @@ class _ProfilePageState extends State<ProfilePage>
                 child: Column(
                   children: [
                     Text(AppTranslations.get('edit_personal_info', l, 'Modifier les infos'),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryBlue)),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor1)),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _usernameController,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('username', l, 'Nom d’utilisateur'),
-                        prefixIcon: const Icon(Icons.person, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.person, color: primaryColor1),
                       ),
                       validator: (v) => v!.isEmpty ? AppTranslations.get('username_required', l, 'Requis') : null,
                     ),
@@ -1597,7 +1597,7 @@ class _ProfilePageState extends State<ProfilePage>
                       controller: _phoneController,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('phone', l, 'Téléphone'),
-                        prefixIcon: const Icon(Icons.phone, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.phone, color: primaryColor1),
                       ),
                       keyboardType: TextInputType.phone,
                     ),
@@ -1606,7 +1606,7 @@ class _ProfilePageState extends State<ProfilePage>
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.email, color: primaryColor1),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) => v!.contains('@') ? null : AppTranslations.get('email_invalid', l, 'Email invalide'),
@@ -1616,7 +1616,7 @@ class _ProfilePageState extends State<ProfilePage>
                       controller: _birthdayController,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('birthday', l, 'Date de naissance'),
-                        prefixIcon: const Icon(Icons.cake, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.cake, color: primaryColor1),
                         hintText: 'YYYY-MM-DD',
                       ),
                       onTap: () async {
@@ -1637,7 +1637,7 @@ class _ProfilePageState extends State<ProfilePage>
                       value: _selectedGender,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('gender', l, 'Genre'),
-                        prefixIcon: const Icon(Icons.transgender, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.transgender, color: primaryColor1),
                       ),
                       items: _genders
                           .map((g) => DropdownMenuItem(
@@ -1655,7 +1655,7 @@ class _ProfilePageState extends State<ProfilePage>
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryBlue,
+                          backgroundColor: primaryColor1,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1687,13 +1687,13 @@ class _ProfilePageState extends State<ProfilePage>
                 child: Column(
                   children: [
                     Text(AppTranslations.get('change_password', l, 'Changer le mot de passe'),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryBlue)),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: primaryColor1)),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _currentPasswordController,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('current_password', l, 'Actuel'),
-                        prefixIcon: const Icon(Icons.lock, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.lock, color: primaryColor1),
                       ),
                       obscureText: true,
                       validator: (v) => v!.isEmpty ? AppTranslations.get('current_password_required', l, 'Requis') : null,
@@ -1703,7 +1703,7 @@ class _ProfilePageState extends State<ProfilePage>
                       controller: _newPasswordController,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('new_password', l, 'Nouveau'),
-                        prefixIcon: const Icon(Icons.lock_outline, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.lock_outline, color: primaryColor1),
                       ),
                       obscureText: true,
                       validator: (v) => v!.length < 6 ? AppTranslations.get('password_min_length', l, '6 caractères min') : null,
@@ -1713,7 +1713,7 @@ class _ProfilePageState extends State<ProfilePage>
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
                         labelText: AppTranslations.get('confirm_password', l, 'Confirmation'),
-                        prefixIcon: const Icon(Icons.lock_reset, color: primaryBlue),
+                        prefixIcon: const Icon(Icons.lock_reset, color: primaryColor1),
                       ),
                       obscureText: true,
                       validator: (v) => v != _newPasswordController.text ? AppTranslations.get('passwords_not_match', l, 'Pas identique') : null,
@@ -1723,7 +1723,7 @@ class _ProfilePageState extends State<ProfilePage>
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: errorRed,
+                          backgroundColor: errorColor1,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1788,7 +1788,7 @@ class _ProfilePageState extends State<ProfilePage>
           if (_uploadedImageUrl != null && !_isUploadingImage)
             Text(
               AppTranslations.get('upload_success', l, 'Upload réussi ✓'),
-              style: TextStyle(color: successGreen, fontWeight: FontWeight.bold),
+              style: TextStyle(color: successColor1, fontWeight: FontWeight.bold),
             ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
@@ -1796,8 +1796,8 @@ class _ProfilePageState extends State<ProfilePage>
             icon: const Icon(Icons.delete, size: 18),
             label: Text(AppTranslations.get('remove', l, 'Supprimer')),
             style: ElevatedButton.styleFrom(
-              backgroundColor: errorRed.withOpacity(.05),
-              foregroundColor: errorRed,
+              backgroundColor: errorColor1.withOpacity(.05),
+              foregroundColor: errorColor1,
             ),
           ),
         ] else ...[
@@ -1839,7 +1839,7 @@ class _ProfilePageState extends State<ProfilePage>
           controller: _townSearchController,
           decoration: InputDecoration(
             labelText: AppTranslations.get('town', l, 'Ville'),
-            prefixIcon: const Icon(Icons.location_city, color: primaryBlue),
+            prefixIcon: const Icon(Icons.location_city, color: primaryColor1),
             suffixIcon: _selectedTown != null
                 ? IconButton(icon: const Icon(Icons.clear), onPressed: _clearTownSelection)
                 : _isSearchingTowns
@@ -1899,7 +1899,7 @@ class _ProfilePageState extends State<ProfilePage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: errorRed),
+              Icon(Icons.error_outline, size: 64, color: errorColor1),
               const SizedBox(height: 16),
               Text(AppTranslations.get('user_not_connected', locale, 'Non connecté'),
                   style: Theme.of(context).textTheme.titleMedium),
@@ -1924,8 +1924,8 @@ class _ProfilePageState extends State<ProfilePage>
           title: Text(AppTranslations.get('profile', locale, 'Profil')),
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: accentOrange,
-            labelColor: accentOrange,
+            indicatorColor: accentColor1,
+            labelColor: accentColor1,
             unselectedLabelColor: Colors.white,
             tabs: [
               Tab(text: AppTranslations.get('information', locale, 'Informations')),
