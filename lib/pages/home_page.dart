@@ -143,19 +143,19 @@
 //     }
 //   }
 
-//   void _selectTown(Town town, Function setStateBS) {
+//   void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters) {
 //     setStateBS(() {
 //       _selectedTown = town;
 //       _showTownDropdown = false;
-//       _filters['town_id'] = town.id;
+//       localFilters['town_id'] = town.id;
 //     });
 //   }
 
-//   void _clearTownSelection(Function setStateBS) {
+//   void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters) {
 //     setStateBS(() {
 //       _selectedTown = null;
 //       _showTownDropdown = false;
-//       _filters['town_id'] = '';
+//       localFilters['town_id'] = '';
 //     });
 //   }
 
@@ -191,19 +191,19 @@
 //     }
 //   }
 
-//   void _selectCategory(Category category, Function setStateBS) {
+//   void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters) {
 //     setStateBS(() {
 //       _selectedCategory = category;
 //       _showCategoryDropdown = false;
-//       _filters['category_property_id'] = category.id;
+//       localFilters['category_property_id'] = category.id;
 //     });
 //   }
 
-//   void _clearCategorySelection(Function setStateBS) {
+//   void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters) {
 //     setStateBS(() {
 //       _selectedCategory = null;
 //       _showCategoryDropdown = false;
-//       _filters['category_property_id'] = '';
+//       localFilters['category_property_id'] = '';
 //     });
 //   }
 
@@ -221,7 +221,10 @@
 //     final int nextPage = shouldReset ? 1 : _currentPage + 1;
 //     final String effectiveQuery = newQuery ?? _currentSearchQuery;
 
-//     if (isNewFilter) _filters.addAll(newFilters!);
+//     if (isNewFilter) {
+//       _filters.clear();
+//       _filters.addAll(newFilters!);
+//     }
 //     _filters['search'] = effectiveQuery;
 
 //     setState(() {
@@ -239,11 +242,21 @@
 //     });
 
 //     try {
-//       final response = await _propertyService.getPropertiesWithFilters({
+//       final Map<String, dynamic> queryParams = {
 //         'page': nextPage,
 //         'limit': _limit,
-//         ..._filters,
+//       };
+
+//       _filters.forEach((key, value) {
+//         if (value != null && value.toString().isNotEmpty) {
+//           queryParams[key] = value;
+//         }
 //       });
+
+//       debugPrint('Requête API avec filtres: $queryParams');
+
+//       final response = await _propertyService.getPropertiesWithFilters(queryParams);
+      
 //       if (mounted) {
 //         setState(() {
 //           _properties.addAll(response.records);
@@ -255,7 +268,7 @@
 //     } catch (e) {
 //       if (mounted) {
 //         setState(() {
-//           _errorMessage = e.toString();
+//           _errorMessage = "Erreur de chargement: ${e.toString()}";
 //           _isLoading = false;
 //           _isPaginating = false;
 //           if (isPaginating) _currentPage--;
@@ -353,12 +366,11 @@
 //   }
 
 //   // =========================================================================
-//   //  BOTTOM SHEET AMÉLIORÉ AVEC AUTOCOMPLÈTES FLUIDES
+//   //  BOTTOM SHEET AMÉLIORÉ AVEC CORRECTION DES FILTRES
 //   // =========================================================================
 //   void _showFilterBottomSheet(BuildContext context, Locale locale) {
 //     final Map<String, dynamic> localFilters = Map.from(_filters);
 
-//     // Créer des contrôleurs locaux pour le bottom sheet
 //     final townSearchController = TextEditingController();
 //     final categorySearchController = TextEditingController();
 //     final priceMinCtrl = TextEditingController(text: localFilters['monthly_price']?.toString() ?? '');
@@ -370,7 +382,6 @@
 //     final bathMinCtrl = TextEditingController(text: localFilters['bathrooms_nb']?.toString() ?? '');
 //     final bathMaxCtrl = TextEditingController(text: localFilters['bathrooms_nb_bis']?.toString() ?? '');
 
-//     // Initialiser les contrôleurs avec les valeurs existantes
 //     if (_selectedTown != null) {
 //       townSearchController.text = _selectedTown!.name;
 //     }
@@ -404,7 +415,6 @@
 //                       ),
 //                       TextButton(
 //                         onPressed: () {
-//                           // Créer un nouveau map de filtres vides avec les valeurs par défaut
 //                           final Map<String, dynamic> resetFilters = {
 //                             'search': '',
 //                             'title': '',
@@ -442,11 +452,9 @@
 //                             'order': 'asc',
 //                           };
 
-//                           // Réinitialiser les sélections
 //                           _selectedTown = null;
 //                           _selectedCategory = null;
                           
-//                           // Réinitialiser les contrôleurs
 //                           townSearchController.clear();
 //                           categorySearchController.clear();
 //                           priceMinCtrl.clear();
@@ -458,20 +466,16 @@
 //                           bathMinCtrl.clear();
 //                           bathMaxCtrl.clear();
                           
-//                           // Réinitialiser les états d'affichage
 //                           _showTownDropdown = false;
 //                           _showCategoryDropdown = false;
 //                           _filteredTowns = [];
 //                           _filteredCategories = [];
                           
-//                           // Mettre à jour les filtres locaux
 //                           localFilters.clear();
 //                           localFilters.addAll(resetFilters);
                           
-//                           // Recharger les propriétés avec filtres réinitialisés
 //                           _loadProperties(newFilters: resetFilters, isInitialLoad: true);
                           
-//                           // Fermer le bottom sheet
 //                           Navigator.of(context).pop();
                           
 //                           setStateBS(() {});
@@ -485,24 +489,24 @@
 //                     child: SingleChildScrollView(
 //                       child: Column(
 //                         children: [
-//                           // Filtre par ville avec autocomplète amélioré
 //                           _buildTownFilterSection(
 //                             locale, 
 //                             setStateBS, 
 //                             townSearchController,
+//                             localFilters,
 //                             (query) => _onTownSearchChanged(query, setStateBS),
-//                             () => _clearTownSelection(setStateBS),
-//                             (town) => _selectTown(town, setStateBS)
+//                             () => _clearTownSelection(setStateBS, localFilters),
+//                             (town) => _selectTown(town, setStateBS, localFilters)
 //                           ),
                           
-//                           // Filtre par catégorie avec autocomplète amélioré
 //                           _buildCategoryFilterSection(
 //                             locale, 
 //                             setStateBS, 
 //                             categorySearchController,
+//                             localFilters,
 //                             (query) => _onCategorySearchChanged(query, setStateBS),
-//                             () => _clearCategorySelection(setStateBS),
-//                             (category) => _selectCategory(category, setStateBS)
+//                             () => _clearCategorySelection(setStateBS, localFilters),
+//                             (category) => _selectCategory(category, setStateBS, localFilters)
 //                           ),
                           
 //                           _buildStatusFilterChips(locale, localFilters, setStateBS),
@@ -587,13 +591,11 @@
 //     );
 //   }
 
-//   // -----------------------------------------------------------------
-//   //  WIDGETS DE FILTRE AMÉLIORÉS
-//   // -----------------------------------------------------------------
 //   Widget _buildTownFilterSection(
 //     Locale locale, 
 //     Function setStateBS, 
 //     TextEditingController controller,
+//     Map<String, dynamic> localFilters,
 //     Function(String) onSearchChanged,
 //     VoidCallback onClearSelection,
 //     Function(Town) onSelectTown,
@@ -675,6 +677,7 @@
 //     Locale locale, 
 //     Function setStateBS, 
 //     TextEditingController controller,
+//     Map<String, dynamic> localFilters,
 //     Function(String) onSearchChanged,
 //     VoidCallback onClearSelection,
 //     Function(Category) onSelectCategory,
@@ -1023,7 +1026,6 @@
 //         child: Column(
 //           crossAxisAlignment: CrossAxisAlignment.start,
 //           children: [
-//             // Image + badges
 //             Stack(
 //               children: [
 //                 ClipRRect(
@@ -1230,6 +1232,7 @@
 //     );
 //   }
 // }
+
 // lib/pages/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -1375,19 +1378,21 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters) {
+  void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
     setStateBS(() {
       _selectedTown = town;
       _showTownDropdown = false;
       localFilters['town_id'] = town.id;
+      townController.text = town.name; // CORRECTION : Mettre à jour le contrôleur
     });
   }
 
-  void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters) {
+  void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
     setStateBS(() {
       _selectedTown = null;
       _showTownDropdown = false;
       localFilters['town_id'] = '';
+      townController.clear(); // CORRECTION : Vider le contrôleur
     });
   }
 
@@ -1423,19 +1428,21 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters) {
+  void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
     setStateBS(() {
       _selectedCategory = category;
       _showCategoryDropdown = false;
       localFilters['category_property_id'] = category.id;
+      categoryController.text = category.name; // CORRECTION : Mettre à jour le contrôleur
     });
   }
 
-  void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters) {
+  void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
     setStateBS(() {
       _selectedCategory = null;
       _showCategoryDropdown = false;
       localFilters['category_property_id'] = '';
+      categoryController.clear(); // CORRECTION : Vider le contrôleur
     });
   }
 
@@ -1614,6 +1621,7 @@ class _HomePageState extends State<HomePage> {
     final bathMinCtrl = TextEditingController(text: localFilters['bathrooms_nb']?.toString() ?? '');
     final bathMaxCtrl = TextEditingController(text: localFilters['bathrooms_nb_bis']?.toString() ?? '');
 
+    // CORRECTION : Initialiser les contrôleurs avec les valeurs actuelles
     if (_selectedTown != null) {
       townSearchController.text = _selectedTown!.name;
     }
@@ -1727,8 +1735,8 @@ class _HomePageState extends State<HomePage> {
                             townSearchController,
                             localFilters,
                             (query) => _onTownSearchChanged(query, setStateBS),
-                            () => _clearTownSelection(setStateBS, localFilters),
-                            (town) => _selectTown(town, setStateBS, localFilters)
+                            () => _clearTownSelection(setStateBS, localFilters, townSearchController),
+                            (town) => _selectTown(town, setStateBS, localFilters, townSearchController)
                           ),
                           
                           _buildCategoryFilterSection(
@@ -1737,8 +1745,8 @@ class _HomePageState extends State<HomePage> {
                             categorySearchController,
                             localFilters,
                             (query) => _onCategorySearchChanged(query, setStateBS),
-                            () => _clearCategorySelection(setStateBS, localFilters),
-                            (category) => _selectCategory(category, setStateBS, localFilters)
+                            () => _clearCategorySelection(setStateBS, localFilters, categorySearchController),
+                            (category) => _selectCategory(category, setStateBS, localFilters, categorySearchController)
                           ),
                           
                           _buildStatusFilterChips(locale, localFilters, setStateBS),

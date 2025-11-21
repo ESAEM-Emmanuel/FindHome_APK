@@ -607,7 +607,8 @@ class _MainScreenState extends State<MainScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+        // color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
           color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
@@ -625,7 +626,8 @@ class _MainScreenState extends State<MainScreen> {
               : Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                    // color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                    color: Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -651,7 +653,8 @@ class _MainScreenState extends State<MainScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                  // color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                  color: Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
