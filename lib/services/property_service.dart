@@ -816,6 +816,47 @@ class PropertyService {
     }
   }
 
+  /// NOUVELLE MÉTHODE : Récupère TOUTES les propriétés avec des filtres avancés (sans pagination)
+  Future<PropertyListResponse> getAllPropertiesWithFilters(Map<String, dynamic> filters) async {
+    try {
+      // Construire les paramètres de requête avec get_all=true et limit=-1
+      final queryParams = <String, String>{};
+      
+      // Ajouter tous les filtres non vides
+      filters.forEach((key, value) {
+        if (value != null && value.toString().isNotEmpty) {
+          queryParams[key] = value.toString();
+        }
+      });
+
+      // FORCER la récupération de tous les éléments
+      queryParams['get_all'] = 'true';
+      // queryParams['limit'] = '-1';
+      queryParams['page'] = '1'; // Toujours page 1 quand on veut tout
+
+      // Paramètres par défaut
+      if (!queryParams.containsKey('order')) {
+        queryParams['order'] = 'asc';
+      }
+      if (!queryParams.containsKey('active')) {
+        queryParams['active'] = 'true'; // Toujours les propriétés actives
+      }
+
+      final uri = Uri.parse('$baseUrl/properties/').replace(queryParameters: queryParams);
+
+      final data = await _makeRequest(() => http.get(uri, headers: _defaultHeaders));
+      return PropertyListResponse.fromJson(data);
+      
+    } on FormatException {
+      throw Exception('Erreur de format des données reçues.');
+    } on http.ClientException {
+      throw Exception('Erreur de connexion. Vérifiez votre connexion internet.');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Erreur inattendue: $e');
+    }
+  }
+
   /// NOUVELLE MÉTHODE : Récupère les villes disponibles
   Future<List<dynamic>> getTowns() async {
     final uri = Uri.parse('$baseUrl/towns/');

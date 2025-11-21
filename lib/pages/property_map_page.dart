@@ -1313,7 +1313,7 @@ class _PropertyMapPageState extends State<PropertyMapPage> {
     });
 
     try {
-      // Préparer les filtres pour l'API
+      // Préparer les filtres pour l'API - TOUJOURS avec get_all=true
       final Map<String, dynamic> apiFilters = {
         'status': _filters['status'],
         'active': _filters['active'],
@@ -1330,16 +1330,15 @@ class _PropertyMapPageState extends State<PropertyMapPage> {
         apiFilters['certified'] = _filters['certified'];
       }
 
-      final response = await _propertyService.getPropertiesWithFilters({
-        'page': 1,
-        'limit': 100,
-        ...apiFilters,
-      });
+      // TOUJOURS utiliser getAllPropertiesWithFilters pour récupérer TOUTES les propriétés
+      debugPrint('Chargement de TOUTES les propriétés avec filtres: $apiFilters');
+      final response = await _propertyService.getAllPropertiesWithFilters(apiFilters);
 
       if (mounted) {
         setState(() {
           _properties = response.records;
           _isLoading = false;
+          debugPrint('${_properties.length} propriétés chargées');
         });
       }
     } catch (e) {
@@ -1787,6 +1786,7 @@ class _PropertyMapPageState extends State<PropertyMapPage> {
                       ],
                     ),
                     _buildMapControls(context),
+                    
                     Positioned(
                       bottom: 16,
                       left: 16,
@@ -1815,7 +1815,7 @@ class _PropertyMapPageState extends State<PropertyMapPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Zoom: ${_currentZoom.toStringAsFixed(1)}',
+                              'Zoom: ${_currentZoom.toStringAsFixed(1)} • Tous les résultats',
                               style: TextStyle(
                                 color: theme.hintColor, 
                                 fontSize: 12
@@ -2415,6 +2415,7 @@ class _FiltersBottomSheetState extends State<_FiltersBottomSheet> {
       _filters.clear();
       _filters['status'] = 'free';
       _filters['active'] = 'true';
+      // Pas besoin de get_all ou limit ici car c'est géré dans getAllPropertiesWithFilters
       _selectedTown = null;
       _selectedCategory = null;
       _townSearchController.clear();
