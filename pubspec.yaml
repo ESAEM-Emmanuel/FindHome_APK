@@ -27,7 +27,8 @@ dependencies:
   signature: ^6.3.0
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.2
-  camera: ^0.11.0+26               # Rappel: Non supporté sur Windows/Linux sans plugins additionnels
+  # camera: ^0.11.0+26               # Rappel: Non supporté sur Windows/Linux sans plugins additionnels
+  camera: ^0.11.3
   logger: ^2.4.0
   provider: ^6.0.5                 # Gestion de l'état (essentiel)
   dio: ^5.4.0+1                    # Pour les appels API
@@ -39,6 +40,7 @@ dependencies:
 
   # ✅ CORRIGÉ : Mise à jour de la version de intl pour résoudre le conflit avec flutter_localizations
   intl: ^0.20.2                    # Pour la localisation (i18n)
+  
 
   # Le package fait partie du SDK Flutter et dépend de la version d'intl ci-dessus
   flutter_localizations:
@@ -48,15 +50,51 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: "^0.14.4"
+  msix: ^3.16.12
 
 # Configuration de flutter_launcher_icons (au niveau racine)
+# flutter_launcher_icons:
+#   android: true
+#   ios: true
+#   # Assurez-vous que 'find_home_logo.png' est bien une image PNG/JPG (et non un SVG)
+#   image_path: "assets/images/find_home_logo.png"
+#   remove_alpha_ios: true
+
+flutter_app_icons:
+  # Chemin vers votre image d'icône PNG (obligatoire)
+  image_path: "assets/images" 
+  # Spécifiez les plateformes à cibler
+  platforms:
+    windows:
+      generate: true # Active la génération pour Windows
+      icon_path: "assets/images/find_home_logo.png" # Peut être le même chemin que ci-dessus
+
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  # Assurez-vous que 'find_home_logo.png' est bien une image PNG/JPG (et non un SVG)
   image_path: "assets/images/find_home_logo.png"
-  remove_alpha_ios: true
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/images/find_home_logo.png"
+    # background_color: "#hexcode"
+    # theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/images/find_home_logo.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/images/find_home_logo.png"
+
+msix_config:
+  display_name: "Find Home App" # Nom affiché aux utilisateurs
+  publisher_display_name: "FindHome" # Company Name
+  identity_name: "FindHomeApp" # ID unique
+  msix_version: 1.0.0.0
+  logo_path: "assets/images/find_home_logo.png"
+  capabilities: internetClient, location, microphone, webcam
 
 # Le bloc flutter: suit (sans inclure la configuration des icônes)
 flutter:

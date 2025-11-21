@@ -1,3 +1,4 @@
+
 // // lib/pages/register_page.dart
 // import 'dart:io';
 // import 'package:flutter/material.dart';
@@ -160,7 +161,7 @@
 //     }
 //   }
 
-//   // === MÉTHODES EXISTANTES (légèrement modifiées) ===
+//   // === MÉTHODES POUR LA GESTION DES VILLES ===
 
 //   Future<void> _loadAllTowns() async {
 //     try {
@@ -219,6 +220,8 @@
 //       _showTownDropdown = false;
 //     });
 //   }
+
+//   // === MÉTHODE D'INSCRIPTION ===
 
 //   Future<void> _handleRegister() async {
 //     if (_formKey.currentState!.validate()) {
@@ -399,7 +402,6 @@
 //   }
 
 //   Widget _buildTownAutocomplete(Locale locale) {
-//     // Votre méthode existante inchangée
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
@@ -544,7 +546,6 @@
 //                   ),
 //                   const SizedBox(height: 40),
 
-
 //                   // Champ Username
 //                   TextFormField(
 //                     controller: _usernameController,
@@ -556,12 +557,15 @@
 //                       if (value == null || value.isEmpty) {
 //                         return AppTranslations.get('required_username', locale, 'Le nom d\'utilisateur est requis');
 //                       }
+//                       if (value.length < 3) {
+//                         return AppTranslations.get('username_min_length', locale, 'Le nom d\'utilisateur doit contenir au moins 3 caractères');
+//                       }
 //                       return null;
 //                     },
 //                   ),
 //                   const SizedBox(height: 16),
 
-//                   // ... (le reste de vos champs existants)
+//                   // Champ Téléphone
 //                   TextFormField(
 //                     controller: _phoneController,
 //                     decoration: InputDecoration(
@@ -573,11 +577,16 @@
 //                       if (value == null || value.isEmpty) {
 //                         return AppTranslations.get('required_phone', locale, 'Le téléphone est requis');
 //                       }
+//                       // Validation basique du format de téléphone
+//                       if (!RegExp(r'^[+]?[\d\s\-\(\)]{8,}$').hasMatch(value)) {
+//                         return AppTranslations.get('invalid_phone', locale, 'Numéro de téléphone invalide');
+//                       }
 //                       return null;
 //                     },
 //                   ),
 //                   const SizedBox(height: 16),
 
+//                   // Champ Email
 //                   TextFormField(
 //                     controller: _emailController,
 //                     decoration: InputDecoration(
@@ -597,6 +606,7 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
+//                   // Champ Date de naissance
 //                   TextFormField(
 //                     controller: _birthdayController,
 //                     decoration: InputDecoration(
@@ -604,6 +614,7 @@
 //                       hintText: 'YYYY-MM-DD',
 //                       prefixIcon: const Icon(Icons.cake, color: primaryColor1),
 //                     ),
+//                     readOnly: true,
 //                     onTap: () async {
 //                       final date = await showDatePicker(
 //                         context: context,
@@ -623,11 +634,22 @@
 //                       if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
 //                         return AppTranslations.get('invalid_date_format', locale, 'Format invalide (YYYY-MM-DD)');
 //                       }
+                      
+//                       // Validation de l'âge minimum (18 ans)
+//                       final birthDate = DateTime.tryParse(value);
+//                       if (birthDate != null) {
+//                         final age = DateTime.now().difference(birthDate).inDays ~/ 365;
+//                         if (age < 18) {
+//                           return AppTranslations.get('minimum_age_required', locale, 'Vous devez avoir au moins 18 ans');
+//                         }
+//                       }
+                      
 //                       return null;
 //                     },
 //                   ),
 //                   const SizedBox(height: 16),
 
+//                   // Champ Genre
 //                   DropdownButtonFormField<String>(
 //                     value: _selectedGender,
 //                     decoration: InputDecoration(
@@ -648,9 +670,16 @@
 //                         _selectedGender = newValue;
 //                       });
 //                     },
+//                     validator: (value) {
+//                       if (value == null || value.isEmpty) {
+//                         return AppTranslations.get('required_gender', locale, 'Veuillez sélectionner votre genre');
+//                       }
+//                       return null;
+//                     },
 //                   ),
 //                   const SizedBox(height: 16),
 
+//                   // Champ Mot de passe
 //                   TextFormField(
 //                     controller: _passwordController,
 //                     obscureText: true,
@@ -670,6 +699,7 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
+//                   // Champ Confirmation mot de passe
 //                   TextFormField(
 //                     controller: _confirmPasswordController,
 //                     obscureText: true,
@@ -689,13 +719,15 @@
 //                   ),
 //                   const SizedBox(height: 16),
 
+//                   // Autocomplete des villes
 //                   _buildTownAutocomplete(locale),
 //                   const SizedBox(height: 30),
 
-//                   // NOUVEAU : Section photo de profil
+//                   // Section photo de profil
 //                   _buildImageUploadSection(locale),
 //                   const SizedBox(height: 24),
 
+//                   // Bouton d'inscription
 //                   ElevatedButton(
 //                     onPressed: authProvider.isLoading ? null : _handleRegister,
 //                     style: ElevatedButton.styleFrom(
@@ -723,6 +755,7 @@
 //                   ),
 //                   const SizedBox(height: 20),
 
+//                   // Lien vers la connexion
 //                   Row(
 //                     mainAxisAlignment: MainAxisAlignment.center,
 //                     children: [
@@ -738,6 +771,7 @@
 //                       ),
 //                     ],
 //                   ),
+//                   const SizedBox(width: 30),
 //                 ],
 //               ),
 //             ),
@@ -747,7 +781,6 @@
 //     );
 //   }
 // }
-
 // lib/pages/register_page.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -788,12 +821,11 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isSearchingTowns = false;
   bool _showTownDropdown = false;
   
-  // Variables pour l'upload d'image
+  // Variables pour l'upload d'image (CORRIGÉES)
   final MediaService _mediaService = MediaService();
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
-  String? _uploadedImageUrl;
-  bool _isUploadingImage = false;
+  bool _isUploadingImage = false; // Nouvel état pour l'upload
 
   @override
   void initState() {
@@ -814,7 +846,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // === MÉTHODES POUR L'UPLOAD D'IMAGE ===
+  // === MÉTHODES POUR L'UPLOAD D'IMAGE (CORRIGÉES) ===
 
   Future<void> _pickImage() async {
     try {
@@ -829,8 +861,7 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() {
           _selectedImage = File(pickedFile.path);
         });
-        // Upload automatique de l'image
-        await _uploadImage();
+        // SUPPRIMER: l'upload automatique
       }
     } catch (e) {
       _showErrorSnackbar('Erreur lors de la sélection de l\'image: $e');
@@ -850,41 +881,43 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() {
           _selectedImage = File(pickedFile.path);
         });
-        // Upload automatique de l'image
-        await _uploadImage();
+        // SUPPRIMER: l'upload automatique
       }
     } catch (e) {
       _showErrorSnackbar('Erreur lors de la prise de photo: $e');
     }
   }
 
-  Future<void> _uploadImage() async {
-    if (_selectedImage == null) return;
-
+  // NOUVELLE MÉTHODE : Upload de l'image à la soumission
+  Future<String?> _uploadImage() async {
+    if (_selectedImage == null) return null;
+    
     setState(() {
       _isUploadingImage = true;
     });
 
     try {
+      debugPrint('🔄 Upload de l\'image de profil...');
       final imageUrl = await _mediaService.uploadSingleFile(_selectedImage!);
+      debugPrint('✅ Image de profil uploadée: $imageUrl');
+      
       setState(() {
-        _uploadedImageUrl = imageUrl;
         _isUploadingImage = false;
       });
       
-      _showSuccessSnackbar('Photo de profil uploadée avec succès');
+      return imageUrl;
     } catch (e) {
       setState(() {
         _isUploadingImage = false;
       });
-      _showErrorSnackbar('Erreur lors de l\'upload: $e');
+      debugPrint('❌ Erreur upload image profil: $e');
+      throw Exception('Erreur lors de l\'upload de l\'image: $e');
     }
   }
 
   void _removeImage() {
     setState(() {
       _selectedImage = null;
-      _uploadedImageUrl = null;
     });
   }
 
@@ -970,7 +1003,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  // === MÉTHODE D'INSCRIPTION ===
+  // === MÉTHODE D'INSCRIPTION CORRIGÉE ===
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
@@ -990,7 +1023,19 @@ class _RegisterPageState extends State<RegisterPage> {
       final locale = settingsProvider.locale;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+      String? imageUrl;
+
       try {
+        // ÉTAPE 1: Upload de l'image si sélectionnée
+        if (_selectedImage != null) {
+          debugPrint('🚀 Début de l\'upload de l\'image de profil...');
+          imageUrl = await _uploadImage();
+          if (imageUrl != null) {
+            debugPrint('✅ Image uploadée avec succès: $imageUrl');
+          }
+        }
+
+        // ÉTAPE 2: Inscription
         await authProvider.register(
           username: _usernameController.text,
           phone: _phoneController.text,
@@ -1000,7 +1045,7 @@ class _RegisterPageState extends State<RegisterPage> {
           confirmPassword: _confirmPasswordController.text,
           townId: _selectedTown!.id,
           gender: _selectedGender,
-          image: _uploadedImageUrl, // ✅ On envoie l'URL de l'image uploadée
+          image: imageUrl, // URL de l'image uploadée (peut être null)
         );
 
         if (mounted) {
@@ -1029,7 +1074,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // === WIDGET POUR L'UPLOAD D'IMAGE ===
+  // === WIDGET POUR L'UPLOAD D'IMAGE CORRIGÉ ===
 
   Widget _buildImageUploadSection(Locale locale) {
     return Column(
@@ -1084,28 +1129,28 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (_uploadedImageUrl != null)
-                  Text(
-                    AppTranslations.get('upload_success', locale, 'Upload réussi ✓'),
-                    style: TextStyle(
-                      color: AppThemes.getSuccessColor(context),
-                      fontWeight: FontWeight.bold,
-                    ),
+                if (_isUploadingImage)
+                  Column(
+                    children: [
+                      Text(
+                        AppTranslations.get('uploading_image', locale, 'Upload en cours...'),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _removeImage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade50,
-                        foregroundColor: Colors.red,
-                      ),
-                      icon: const Icon(Icons.delete, size: 18),
-                      label: Text(AppTranslations.get('remove', locale, 'Supprimer')),
-                    ),
-                  ],
+                ElevatedButton.icon(
+                  onPressed: _removeImage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                  ),
+                  icon: const Icon(Icons.delete, size: 18),
+                  label: Text(AppTranslations.get('remove', locale, 'Supprimer')),
                 ),
               ] else ...[
                 // Aucune image sélectionnée
@@ -1231,6 +1276,51 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
       ],
+    );
+  }
+
+  // === BOUTON D'INSCRIPTION CORRIGÉ ===
+
+  Widget _buildRegisterButton(Locale locale, AuthProvider authProvider) {
+    final isLoading = authProvider.isLoading || _isUploadingImage;
+    
+    return ElevatedButton(
+      onPressed: isLoading ? null : _handleRegister,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor1,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        elevation: 5,
+      ),
+      child: isLoading
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 20, 
+                  width: 20, 
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  _isUploadingImage
+                    ? AppTranslations.get('uploading_image', locale, 'Upload en cours...')
+                    : AppTranslations.get('registering', locale, 'Inscription...'),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            )
+          : Text(
+              AppTranslations.get('register_button', locale, 'S\'inscrire'),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
     );
   }
 
@@ -1476,32 +1566,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   _buildImageUploadSection(locale),
                   const SizedBox(height: 24),
 
-                  // Bouton d'inscription
-                  ElevatedButton(
-                    onPressed: authProvider.isLoading ? null : _handleRegister,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor1,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: authProvider.isLoading
-                        ? const SizedBox(
-                            height: 20, 
-                            width: 20, 
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(
-                            AppTranslations.get('register_button', locale, 'S\'inscrire'),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                  ),
+                  // Bouton d'inscription (CORRIGÉ)
+                  _buildRegisterButton(locale, authProvider),
                   const SizedBox(height: 20),
 
                   // Lien vers la connexion

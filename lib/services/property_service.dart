@@ -1,4 +1,3 @@
-
 // // lib/services/property_service.dart
 
 // import 'dart:convert';
@@ -106,7 +105,7 @@
 //     // Ajout des filtres dynamiques
 //     if (filters != null) {
 //       for (final entry in filters.entries) {
-//         if (entry.value != null) {
+//         if (entry.value != null && entry.value.toString().isNotEmpty) {
 //           queryParams[entry.key] = entry.value.toString();
 //         }
 //       }
@@ -339,6 +338,101 @@
 //     );
     
 //     return data as Map<String, dynamic>;
+//   }
+
+//   /// NOUVELLE MÉTHODE : Récupère les propriétés avec des filtres avancés
+//   Future<PropertyListResponse> getPropertiesWithFilters(Map<String, dynamic> filters) async {
+//     try {
+//       // Construire les paramètres de requête
+//       final queryParams = <String, String>{};
+      
+//       // Ajouter tous les filtres non vides
+//       filters.forEach((key, value) {
+//         if (value != null && value.toString().isNotEmpty) {
+//           queryParams[key] = value.toString();
+//         }
+//       });
+
+//       // S'assurer que les paramètres de pagination sont présents
+//       if (!queryParams.containsKey('page')) {
+//         queryParams['page'] = '1';
+//       }
+//       if (!queryParams.containsKey('limit')) {
+//         queryParams['limit'] = '10';
+//       }
+//       if (!queryParams.containsKey('order')) {
+//         queryParams['order'] = 'asc';
+//       }
+
+//       final uri = Uri.parse('$baseUrl/properties/').replace(queryParameters: queryParams);
+
+//       final data = await _makeRequest(() => http.get(uri, headers: _defaultHeaders));
+//       return PropertyListResponse.fromJson(data);
+      
+//     } on FormatException {
+//       throw Exception('Erreur de format des données reçues.');
+//     } on http.ClientException {
+//       throw Exception('Erreur de connexion. Vérifiez votre connexion internet.');
+//     } catch (e) {
+//       if (e is Exception) rethrow;
+//       throw Exception('Erreur inattendue: $e');
+//     }
+//   }
+
+//   /// NOUVELLE MÉTHODE : Récupère les villes disponibles
+//   Future<List<dynamic>> getTowns() async {
+//     final uri = Uri.parse('$baseUrl/towns/');
+
+//     final data = await _makeRequest(() => http.get(uri, headers: _defaultHeaders));
+//     return data['records'] as List<dynamic>;
+//   }
+
+//   /// NOUVELLE MÉTHODE : Récupère les catégories disponibles
+//   Future<List<dynamic>> getCategories() async {
+//     final uri = Uri.parse('$baseUrl/categories/');
+
+//     final data = await _makeRequest(() => http.get(uri, headers: _defaultHeaders));
+//     return data['records'] as List<dynamic>;
+//   }
+
+//   /// NOUVELLE MÉTHODE : Réinitialise les filtres
+//   Map<String, dynamic> getDefaultFilters() {
+//     return {
+//       'search': '',
+//       'title': '',
+//       'address': '',
+//       'monthly_price': '',
+//       'monthly_price_bis': '',
+//       'monthly_price_operation': '',
+//       'area': '',
+//       'area_bis': '',
+//       'area_operation': '',
+//       'rooms_nb': '',
+//       'rooms_nb_bis': '',
+//       'rooms_nb_operation': '',
+//       'bathrooms_nb': '',
+//       'bathrooms_nb_bis': '',
+//       'bathrooms_nb_operation': '',
+//       'living_rooms_nb': '',
+//       'living_rooms_nb_bis': '',
+//       'living_rooms_nb_operation': '',
+//       'compartment_number': '',
+//       'compartment_number_bis': '',
+//       'compartment_number_operation': '',
+//       'status': '',
+//       'water_supply': '',
+//       'electrical_connection': '',
+//       'town_id': '',
+//       'category_property_id': '',
+//       'certified': '',
+//       'has_internal_kitchen': '',
+//       'has_external_kitchen': '',
+//       'has_a_parking': '',
+//       'has_air_conditioning': '',
+//       'has_security_guards': '',
+//       'has_balcony': '',
+//       'order': 'asc',
+//     };
 //   }
 // }
 // lib/services/property_service.dart

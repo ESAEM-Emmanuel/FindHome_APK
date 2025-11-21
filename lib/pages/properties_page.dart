@@ -958,8 +958,6 @@
 // }
 
 // lib/pages/properties_page.dart
-// ListView moderne 2025 – sans Card – palette officielle
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/property_service.dart';

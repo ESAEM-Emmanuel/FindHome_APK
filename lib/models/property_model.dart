@@ -1,34 +1,7 @@
 // // lib/models/property_model.dart
-
 // import 'package:flutter/material.dart';
-
-// class Category {
-//   final String id;
-//   final String name;
-
-//   Category({required this.id, required this.name});
-
-//   factory Category.fromJson(Map<String, dynamic> json) {
-//     return Category(
-//       id: json['id'] as String,
-//       name: json['name'] as String,
-//     );
-//   }
-// }
-
-// class Town {
-//   final String id;
-//   final String name;
-
-//   Town({required this.id, required this.name});
-
-//   factory Town.fromJson(Map<String, dynamic> json) {
-//     return Town(
-//       id: json['id'] as String,
-//       name: json['name'] as String,
-//     );
-//   }
-// }
+// import 'town.dart'; // Import depuis le fichier dédié
+// import 'category.dart'; // Import depuis le fichier dédié
 
 // class Favorite {
 //   final String id;
@@ -54,6 +27,16 @@
 //       active: json['active'] as bool? ?? true,
 //     );
 //   }
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'id': id,
+//       'property_id': propertyId,
+//       'created_by': createdById,
+//       'refnumber': refNumber,
+//       'active': active,
+//     };
+//   }
 // }
 
 // class Property {
@@ -69,8 +52,8 @@
 //   final List<String> otherImages;
 //   final bool certified;
 //   final String status;
-//   final Town town;
-//   final Category category;
+//   final Town town; // Utilise la classe Town du fichier town.dart
+//   final Category category; // Utilise la classe Category du fichier category.dart
 
 //   // Champs de détail supplémentaires
 //   final String refNumber;
@@ -229,8 +212,136 @@
 //     );
 //   }
 
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'id': id,
+//       'title': title,
+//       'description': description,
+//       'address': address,
+//       'monthly_price': monthlyPrice,
+//       'area': area,
+//       'rooms_nb': roomsNb,
+//       'bathrooms_nb': bathroomsNb,
+//       'main_image': mainImage,
+//       'other_images': otherImages,
+//       'certified': certified,
+//       'status': status,
+//       'town': town.toJson(),
+//       'category': category.toJson(),
+//       'refnumber': refNumber,
+//       'living_rooms_nb': livingRoomsNb,
+//       'has_internal_kitchen': hasInternalKitchen,
+//       'has_external_kitchen': hasExternalKitchen,
+//       'has_a_parking': hasAParking,
+//       'has_air_conditioning': hasAirConditioning,
+//       'has_security_guards': hasSecurityGuards,
+//       'has_balcony': hasBalcony,
+//       'owner_id': ownerId,
+//       'location': location,
+//       'latitude': latitude,
+//       'longitude': longitude,
+//       'water_supply': waterSupply,
+//       'electrical_connection': electricalConnection,
+//       'compartment_number': compartmentNumber,
+//     };
+//   }
+
 //   // Méthode utilitaire pour vérifier si la localisation est disponible
 //   bool get hasValidLocation => latitude != null && longitude != null;
+
+//   // Méthode pour créer une copie avec des valeurs modifiées
+//   Property copyWith({
+//     String? id,
+//     String? title,
+//     String? description,
+//     String? address,
+//     int? monthlyPrice,
+//     int? area,
+//     int? roomsNb,
+//     int? bathroomsNb,
+//     String? mainImage,
+//     List<String>? otherImages,
+//     bool? certified,
+//     String? status,
+//     Town? town,
+//     Category? category,
+//     String? refNumber,
+//     int? livingRoomsNb,
+//     bool? hasInternalKitchen,
+//     bool? hasExternalKitchen,
+//     bool? hasAParking,
+//     bool? hasAirConditioning,
+//     bool? hasSecurityGuards,
+//     bool? hasBalcony,
+//     String? ownerId,
+//     List<String>? location,
+//     double? latitude,
+//     double? longitude,
+//     String? waterSupply,
+//     String? electricalConnection,
+//     int? compartmentNumber,
+//   }) {
+//     return Property(
+//       id: id ?? this.id,
+//       title: title ?? this.title,
+//       description: description ?? this.description,
+//       address: address ?? this.address,
+//       monthlyPrice: monthlyPrice ?? this.monthlyPrice,
+//       area: area ?? this.area,
+//       roomsNb: roomsNb ?? this.roomsNb,
+//       bathroomsNb: bathroomsNb ?? this.bathroomsNb,
+//       mainImage: mainImage ?? this.mainImage,
+//       otherImages: otherImages ?? this.otherImages,
+//       certified: certified ?? this.certified,
+//       status: status ?? this.status,
+//       town: town ?? this.town,
+//       category: category ?? this.category,
+//       refNumber: refNumber ?? this.refNumber,
+//       livingRoomsNb: livingRoomsNb ?? this.livingRoomsNb,
+//       hasInternalKitchen: hasInternalKitchen ?? this.hasInternalKitchen,
+//       hasExternalKitchen: hasExternalKitchen ?? this.hasExternalKitchen,
+//       hasAParking: hasAParking ?? this.hasAParking,
+//       hasAirConditioning: hasAirConditioning ?? this.hasAirConditioning,
+//       hasSecurityGuards: hasSecurityGuards ?? this.hasSecurityGuards,
+//       hasBalcony: hasBalcony ?? this.hasBalcony,
+//       ownerId: ownerId ?? this.ownerId,
+//       location: location ?? this.location,
+//       latitude: latitude ?? this.latitude,
+//       longitude: longitude ?? this.longitude,
+//       waterSupply: waterSupply ?? this.waterSupply,
+//       electricalConnection: electricalConnection ?? this.electricalConnection,
+//       compartmentNumber: compartmentNumber ?? this.compartmentNumber,
+//     );
+//   }
+
+//   // Méthode pour obtenir le prix formaté
+//   String get formattedPrice {
+//     return '$monthlyPrice FCFA/mois';
+//   }
+
+//   // Méthode pour obtenir la surface formatée
+//   String get formattedArea {
+//     return '$area m²';
+//   }
+
+//   // Méthode pour vérifier si la propriété est disponible
+//   bool get isAvailable {
+//     return status == 'free' || status == 'available';
+//   }
+
+//   // Méthode pour obtenir les équipements sous forme de liste
+//   List<String> get amenities {
+//     final List<String> amenitiesList = [];
+    
+//     if (hasInternalKitchen) amenitiesList.add('Cuisine interne');
+//     if (hasExternalKitchen) amenitiesList.add('Cuisine externe');
+//     if (hasAParking) amenitiesList.add('Parking');
+//     if (hasAirConditioning) amenitiesList.add('Climatisation');
+//     if (hasSecurityGuards) amenitiesList.add('Gardiennage');
+//     if (hasBalcony) amenitiesList.add('Balcon');
+    
+//     return amenitiesList;
+//   }
 // }
 
 // // Modèle pour la réponse paginée
@@ -258,8 +369,18 @@
 //       currentPage: metadata['current_page'] as int,
 //     );
 //   }
-// }
 
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'records': records.map((property) => property.toJson()).toList(),
+//       'metadata': {
+//         'total_records': totalRecords,
+//         'total_pages': totalPages,
+//         'current_page': currentPage,
+//       },
+//     };
+//   }
+// }
 // lib/models/property_model.dart
 import 'package:flutter/material.dart';
 import 'town.dart'; // Import depuis le fichier dédié
@@ -340,6 +461,9 @@ class Property {
   final String electricalConnection;
   final int compartmentNumber;
 
+  // NOUVEAU : Champ pour la vérification de demande
+  final bool hasSendVerifiedRequest;
+
   Property({
     required this.id,
     required this.title,
@@ -372,6 +496,8 @@ class Property {
     required this.waterSupply,
     required this.electricalConnection,
     required this.compartmentNumber,
+    // NOUVEAU : Vérification de demande
+    required this.hasSendVerifiedRequest,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -432,6 +558,9 @@ class Property {
     final waterSupply = json['water_supply'] as String? ?? 'not_available';
     final electricalConnection = json['electrical_connection'] as String? ?? 'not_available';
 
+    // 6. NOUVEAU : Gestion de la vérification de demande
+    final hasSendVerifiedRequest = json['has_send_verified_request'] as bool? ?? false;
+
     return Property(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -471,6 +600,9 @@ class Property {
       waterSupply: waterSupply,
       electricalConnection: electricalConnection,
       compartmentNumber: compartmentNumber,
+      
+      // NOUVEAU : Vérification de demande
+      hasSendVerifiedRequest: hasSendVerifiedRequest,
     );
   }
 
@@ -505,6 +637,7 @@ class Property {
       'water_supply': waterSupply,
       'electrical_connection': electricalConnection,
       'compartment_number': compartmentNumber,
+      'has_send_verified_request': hasSendVerifiedRequest,
     };
   }
 
@@ -542,6 +675,7 @@ class Property {
     String? waterSupply,
     String? electricalConnection,
     int? compartmentNumber,
+    bool? hasSendVerifiedRequest,
   }) {
     return Property(
       id: id ?? this.id,
@@ -573,6 +707,7 @@ class Property {
       waterSupply: waterSupply ?? this.waterSupply,
       electricalConnection: electricalConnection ?? this.electricalConnection,
       compartmentNumber: compartmentNumber ?? this.compartmentNumber,
+      hasSendVerifiedRequest: hasSendVerifiedRequest ?? this.hasSendVerifiedRequest,
     );
   }
 

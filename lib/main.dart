@@ -53,7 +53,7 @@
 
 //     return MaterialApp(
 //       debugShowCheckedModeBanner: false,
-//       title: 'B-to-B App',
+//       title: 'FindHomeApp',
       
 //       theme: AppThemes.lightTheme,
 //       darkTheme: AppThemes.darkTheme,
@@ -462,15 +462,28 @@ import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'constants/app_themes.dart';
 import 'constants/app_translations.dart';
+import 'dart:io' show Platform; // ⬅️ NOUVEAU: Importez Platform pour vérifier l'OS
+import 'package:flutter/foundation.dart' show kIsWeb; // ⬅️ NOUVEAU: Importez kIsWeb pour le web
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   List<CameraDescription> cameras = [];
-  try {
-    cameras = await availableCameras();
-  } on CameraException catch (e) {
-    debugPrint('Erreur lors de l\'initialisation des caméras: $e');
+
+  bool isMobileOrWeb = Platform.isAndroid || Platform.isIOS || kIsWeb;
+
+  if (isMobileOrWeb) {
+    try {
+      cameras = await availableCameras();
+    } on CameraException catch (e) {
+      // Si une erreur survient (caméra non trouvée, permissions refusées), 
+      // la liste 'cameras' restera vide.
+      debugPrint('Erreur lors de l\'initialisation des caméras: $e');
+    } catch (e) {
+      // Gérer l'exception générale MissingPluginException sur les plateformes desktop
+      // (même si on essaie de l'éviter, c'est une sécurité)
+      debugPrint('Erreur inattendue de plugin (probablement desktop non supporté) : $e');
+    }
   }
 
   final authProvider = AuthProvider();
@@ -496,7 +509,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'B-to-B App',
+      title: 'FindHomeApp',
 
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
@@ -713,7 +726,7 @@ class _MainScreenState extends State<MainScreen> {
                     Icon(
                       Icons.login,
                       size: 14,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -721,7 +734,7 @@ class _MainScreenState extends State<MainScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                   ],

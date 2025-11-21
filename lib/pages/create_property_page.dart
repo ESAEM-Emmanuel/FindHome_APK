@@ -1,5 +1,4 @@
 // // lib/pages/create_property_page.dart
-
 // import 'dart:io';
 // import 'package:flutter/material.dart';
 // import 'package:image_picker/image_picker.dart';
@@ -57,13 +56,10 @@
 //   bool _isSearchingCategories = false;
 //   bool _showCategoryDropdown = false;
 
-//   // === GESTION DES IMAGES ===
+//   // === GESTION DES IMAGES (CORRIGÉE) ===
 //   File? _selectedMainImage;
 //   List<File> _selectedOtherImages = [];
-//   String? _uploadedMainImageUrl;
-//   List<String> _uploadedOtherImagesUrls = [];
-//   bool _isUploadingMainImage = false;
-//   bool _isUploadingOtherImages = false;
+//   bool _isUploadingImages = false;
 
 //   // === ÉQUIPEMENTS (CHECKBOX) ===
 //   bool _hasInternalKitchen = false;
@@ -79,15 +75,9 @@
 //   double? _longitude;
 //   bool _isGettingLocation = false;
 
-//   // === NOUVEAUX CHAMPS SELECT ===
-  
-//   // Alimentation en eau
+//   // === CHAMPS SELECT ===
 //   String _selectedWaterSupply = 'not_available';
-  
-//   // Connexion électrique
 //   String _selectedElectricalConnection = 'not_available';
-  
-//   // Statut
 //   String _selectedStatus = 'free';
 
 //   // === ÉTATS ===
@@ -96,11 +86,8 @@
 //   @override
 //   void initState() {
 //     super.initState();
-//     // Initialisation des listeners pour l'autocomplete
 //     _townSearchController.addListener(_onTownSearchChanged);
 //     _categorySearchController.addListener(_onCategorySearchChanged);
-    
-//     // Chargement des données initiales
 //     _getUserLocation();
 //     _loadAllTowns();
 //     _loadAllCategories();
@@ -108,7 +95,6 @@
 
 //   @override
 //   void dispose() {
-//     // Nettoyage de tous les contrôleurs
 //     _titleController.dispose();
 //     _descriptionController.dispose();
 //     _addressController.dispose();
@@ -123,80 +109,55 @@
 //     super.dispose();
 //   }
 
-//   // === MÉTHODES POUR CHARGER LES DONNÉES INITIALES ===
-
-//   /// Charge toutes les villes disponibles
+//   // =========================================================
+//   //  DATA LOADING
+//   // =========================================================
 //   Future<void> _loadAllTowns() async {
 //     try {
 //       final towns = await _townService.getAllTowns();
-//       setState(() {
-//         _filteredTowns = towns;
-//       });
+//       setState(() => _filteredTowns = towns);
 //     } catch (e) {
-//       print('Erreur lors du chargement des villes: $e');
+//       debugPrint('Erreur chargement villes: $e');
 //     }
 //   }
 
-//   /// Charge toutes les catégories disponibles
 //   Future<void> _loadAllCategories() async {
 //     try {
 //       final categories = await _categoryService.getAllCategories();
-//       setState(() {
-//         _filteredCategories = categories;
-//       });
+//       setState(() => _filteredCategories = categories);
 //     } catch (e) {
-//       print('Erreur lors du chargement des catégories: $e');
+//       debugPrint('Erreur chargement catégories: $e');
 //     }
 //   }
 
-//   // === MÉTHODES POUR LA LOCALISATION GPS ===
-
-//   /// Récupère la position GPS de l'utilisateur
 //   Future<void> _getUserLocation() async {
-//     setState(() {
-//       _isGettingLocation = true;
-//     });
-
+//     setState(() => _isGettingLocation = true);
 //     try {
-//       // Vérification des permissions
 //       LocationPermission permission = await Geolocator.checkPermission();
 //       if (permission == LocationPermission.denied) {
 //         permission = await Geolocator.requestPermission();
-//         if (permission == LocationPermission.denied) {
-//           throw Exception('Permissions de localisation refusées');
-//         }
+//         if (permission == LocationPermission.denied) throw Exception('Permissions refusées');
 //       }
+//       if (permission == LocationPermission.deniedForever) throw Exception('Permissions définitivement refusées');
 
-//       if (permission == LocationPermission.deniedForever) {
-//         throw Exception('Permissions de localisation définitivement refusées');
-//       }
-
-//       // Récupération de la position
-//       Position position = await Geolocator.getCurrentPosition(
-//         desiredAccuracy: LocationAccuracy.best,
-//       );
-
+//       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
 //       setState(() {
 //         _userPosition = position;
 //         _latitude = position.latitude;
 //         _longitude = position.longitude;
 //         _isGettingLocation = false;
 //       });
-      
 //     } catch (e) {
-//       setState(() {
-//         _isGettingLocation = false;
-//       });
-//       _showErrorSnackbar(AppTranslations.get('location_error', const Locale('fr'), 'Erreur de localisation'));
+//       setState(() => _isGettingLocation = false);
+//       _showSnackBar(AppTranslations.get('location_error', const Locale('fr'), 'Erreur de localisation'), isError: true);
 //     }
 //   }
 
-//   // === MÉTHODES POUR L'AUTOCOMPLETE DES VILLES ===
-
-//   /// Gère la recherche de villes en temps réel
+//   // =========================================================
+//   //  AUTOCOMPLETE
+//   // =========================================================
 //   void _onTownSearchChanged() async {
 //     final query = _townSearchController.text.trim();
-    
 //     if (query.isEmpty) {
 //       setState(() {
 //         _showTownDropdown = false;
@@ -204,12 +165,10 @@
 //       });
 //       return;
 //     }
-
 //     setState(() {
 //       _isSearchingTowns = true;
 //       _showTownDropdown = true;
 //     });
-
 //     try {
 //       final response = await _townService.searchTowns(query);
 //       setState(() {
@@ -217,15 +176,10 @@
 //         _isSearchingTowns = false;
 //       });
 //     } catch (e) {
-//       setState(() {
-//         _isSearchingTowns = false;
-//         _filteredTowns = [];
-//       });
-//       print('Erreur lors de la recherche de villes: $e');
+//       setState(() => _isSearchingTowns = false);
 //     }
 //   }
 
-//   /// Sélectionne une ville dans la liste
 //   void _selectTown(Town town) {
 //     setState(() {
 //       _selectedTown = town;
@@ -234,7 +188,6 @@
 //     });
 //   }
 
-//   /// Efface la sélection de ville
 //   void _clearTownSelection() {
 //     setState(() {
 //       _selectedTown = null;
@@ -243,12 +196,8 @@
 //     });
 //   }
 
-//   // === MÉTHODES POUR L'AUTOCOMPLETE DES CATÉGORIES ===
-
-//   /// Gère la recherche de catégories en temps réel
 //   void _onCategorySearchChanged() async {
 //     final query = _categorySearchController.text.trim();
-    
 //     if (query.isEmpty) {
 //       setState(() {
 //         _showCategoryDropdown = false;
@@ -256,12 +205,10 @@
 //       });
 //       return;
 //     }
-
 //     setState(() {
 //       _isSearchingCategories = true;
 //       _showCategoryDropdown = true;
 //     });
-
 //     try {
 //       final response = await _categoryService.searchCategories(query);
 //       setState(() {
@@ -269,15 +216,10 @@
 //         _isSearchingCategories = false;
 //       });
 //     } catch (e) {
-//       setState(() {
-//         _isSearchingCategories = false;
-//         _filteredCategories = [];
-//       });
-//       print('Erreur lors de la recherche de catégories: $e');
+//       setState(() => _isSearchingCategories = false);
 //     }
 //   }
 
-//   /// Sélectionne une catégorie dans la liste
 //   void _selectCategory(Category category) {
 //     setState(() {
 //       _selectedCategory = category;
@@ -286,7 +228,6 @@
 //     });
 //   }
 
-//   /// Efface la sélection de catégorie
 //   void _clearCategorySelection() {
 //     setState(() {
 //       _selectedCategory = null;
@@ -295,9 +236,9 @@
 //     });
 //   }
 
-//   // === MÉTHODES POUR L'UPLOAD D'IMAGES ===
-
-//   /// Sélectionne l'image principale
+//   // =========================================================
+//   //  GESTION DES IMAGES CORRIGÉE
+//   // =========================================================
 //   Future<void> _pickMainImage() async {
 //     try {
 //       final XFile? pickedFile = await _imagePicker.pickImage(
@@ -306,19 +247,14 @@
 //         maxHeight: 1200,
 //         imageQuality: 85,
 //       );
-
 //       if (pickedFile != null) {
-//         setState(() {
-//           _selectedMainImage = File(pickedFile.path);
-//         });
-//         await _uploadMainImage();
+//         setState(() => _selectedMainImage = File(pickedFile.path));
 //       }
 //     } catch (e) {
-//       _showErrorSnackbar(AppTranslations.get('image_selection_error', const Locale('fr'), 'Erreur lors de la sélection de l\'image'));
+//       _showSnackBar(AppTranslations.get('image_selection_error', const Locale('fr'), 'Erreur de sélection'), isError: true);
 //     }
 //   }
 
-//   /// Sélectionne les images supplémentaires
 //   Future<void> _pickOtherImages() async {
 //     try {
 //       final List<XFile> pickedFiles = await _imagePicker.pickMultiImage(
@@ -326,238 +262,170 @@
 //         maxHeight: 1200,
 //         imageQuality: 85,
 //       );
-
 //       if (pickedFiles.isNotEmpty) {
-//         setState(() {
-//           _selectedOtherImages.addAll(pickedFiles.map((file) => File(file.path)));
-//         });
-//         await _uploadOtherImages();
+//         setState(() => _selectedOtherImages.addAll(pickedFiles.map((f) => File(f.path))));
 //       }
 //     } catch (e) {
-//       _showErrorSnackbar(AppTranslations.get('image_selection_error', const Locale('fr'), 'Erreur lors de la sélection des images'));
+//       _showSnackBar(AppTranslations.get('image_selection_error', const Locale('fr'), 'Erreur de sélection'), isError: true);
 //     }
 //   }
 
-//   /// Upload l'image principale
-//   Future<void> _uploadMainImage() async {
-//     if (_selectedMainImage == null) return;
-
-//     setState(() {
-//       _isUploadingMainImage = true;
-//     });
-
+//   Future<String?> _uploadMainImage() async {
+//     if (_selectedMainImage == null) return null;
+    
 //     try {
-//       final imageUrl = await _mediaService.uploadSingleFile(_selectedMainImage!);
-//       setState(() {
-//         _uploadedMainImageUrl = imageUrl;
-//         _isUploadingMainImage = false;
-//       });
-//       _showSuccessSnackbar(AppTranslations.get('main_image_upload_success', const Locale('fr'), 'Image principale uploadée avec succès'));
+//       final url = await _mediaService.uploadSingleFile(_selectedMainImage!);
+//       return url;
 //     } catch (e) {
-//       setState(() {
-//         _isUploadingMainImage = false;
-//       });
-//       _showErrorSnackbar(AppTranslations.get('main_image_upload_error', const Locale('fr'), 'Erreur lors de l\'upload de l\'image principale'));
+//       throw Exception('Erreur lors de l\'upload de l\'image principale: $e');
 //     }
 //   }
 
-//   /// Upload les images supplémentaires
-//   Future<void> _uploadOtherImages() async {
-//     if (_selectedOtherImages.isEmpty) return;
-
-//     setState(() {
-//       _isUploadingOtherImages = true;
-//     });
-
-//     try {
-//       final List<String> uploadedUrls = [];
-//       for (final imageFile in _selectedOtherImages) {
-//         final imageUrl = await _mediaService.uploadSingleFile(imageFile);
-//         uploadedUrls.add(imageUrl);
-//       }
-//       setState(() {
-//         _uploadedOtherImagesUrls.addAll(uploadedUrls);
-//         _isUploadingOtherImages = false;
-//       });
-//       _showSuccessSnackbar(AppTranslations.get('other_images_upload_success', const Locale('fr'), '${_selectedOtherImages.length} images uploadées avec succès'));
-//     } catch (e) {
-//       setState(() {
-//         _isUploadingOtherImages = false;
-//       });
-//       _showErrorSnackbar(AppTranslations.get('other_images_upload_error', const Locale('fr'), 'Erreur lors de l\'upload des images'));
-//     }
-//   }
-
-//   /// Supprime l'image principale
-//   void _removeMainImage() {
-//     setState(() {
-//       _selectedMainImage = null;
-//       _uploadedMainImageUrl = null;
-//     });
-//   }
-
-//   /// Supprime une image supplémentaire
-//   void _removeOtherImage(int index) {
-//     setState(() {
-//       _selectedOtherImages.removeAt(index);
-//       if (index < _uploadedOtherImagesUrls.length) {
-//         _uploadedOtherImagesUrls.removeAt(index);
-//       }
-//     });
-//   }
-
-//   // === MÉTHODES POUR LES TRADUCTIONS DES OPTIONS ===
-
-//   /// Retourne les options d'alimentation en eau traduites
-//   Map<String, String> _getWaterSupplyOptions(Locale locale) {
-//     return {
-//       'not_available': AppTranslations.get('water_not_available', locale, 'Non disponible'),
-//       'connected_public_supply': AppTranslations.get('water_public_supply', locale, 'Réseau public'),
-//       'stand_alone_system': AppTranslations.get('water_stand_alone', locale, 'Système autonome'),
-//       'stand_alone_system_with_mains_connection': AppTranslations.get('water_hybrid', locale, 'Système hybride'),
-//     };
-//   }
-
-//   /// Retourne les options de connexion électrique traduites
-//   Map<String, String> _getElectricalConnectionOptions(Locale locale) {
-//     return {
-//       'not_available': AppTranslations.get('electric_not_available', locale, 'Non disponible'),
-//       'connected_public_supply': AppTranslations.get('electric_public_supply', locale, 'Réseau public'),
-//       'stand_alone_system': AppTranslations.get('electric_stand_alone', locale, 'Système autonome'),
-//       'stand_alone_system_with_mains_connection': AppTranslations.get('electric_hybrid', locale, 'Système hybride'),
-//     };
-//   }
-
-//   /// Retourne les options de statut traduites
-//   Map<String, String> _getStatusOptions(Locale locale) {
-//     return {
-//       'free': AppTranslations.get('status_free', locale, 'Libre'),
-//       'busy': AppTranslations.get('status_busy', locale, 'Occupé'),
-//       'prev_advise': AppTranslations.get('status_prev_advise', locale, 'Préavis'),
-//     };
-//   }
-
-//   // === MÉTHODES POUR LA SOUMISSION ===
-
-//   /// Gère la création de la propriété
-//   Future<void> _handleCreateProperty() async {
-//     if (_formKey.currentState!.validate()) {
-//       final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
-      
-//       // Validation des champs obligatoires
-//       if (_selectedTown == null) {
-//         _showErrorSnackbar(AppTranslations.get('select_town_required', locale, 'Veuillez sélectionner une ville'));
-//         return;
-//       }
-
-//       if (_selectedCategory == null) {
-//         _showErrorSnackbar(AppTranslations.get('select_category_required', locale, 'Veuillez sélectionner une catégorie'));
-//         return;
-//       }
-
-//       if (_uploadedMainImageUrl == null) {
-//         _showErrorSnackbar(AppTranslations.get('main_image_required', locale, 'Veuillez uploader une image principale'));
-//         return;
-//       }
-
-//       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-//       final accessToken = authProvider.accessToken;
-
-//       if (accessToken == null) {
-//         _showErrorSnackbar(AppTranslations.get('login_required', locale, 'Vous devez être connecté pour créer une propriété'));
-//         return;
-//       }
-
-//       // Vérification que l'utilisateur est bien connecté et a un ID
-//       if (authProvider.currentUser == null || authProvider.currentUser!.id.isEmpty) {
-//         _showErrorSnackbar(AppTranslations.get('user_id_not_found', locale, 'Impossible de récupérer votre ID utilisateur. Veuillez vous reconnecter.'));
-//         return;
-//       }
-
-//       setState(() {
-//         _isSubmitting = true;
-//       });
-
+//   Future<List<String>> _uploadOtherImages() async {
+//     if (_selectedOtherImages.isEmpty) return [];
+    
+//     final urls = <String>[];
+//     for (final file in _selectedOtherImages) {
 //       try {
-//         // Préparer les données pour l'API
-//         final propertyData = {
-//           "title": _titleController.text,
-//           "description": _descriptionController.text,
-//           "address": _addressController.text,
-//           "monthly_price": int.parse(_monthlyPriceController.text),
-//           "area": int.parse(_areaController.text),
-//           "rooms_nb": int.parse(_roomsController.text),
-//           "bathrooms_nb": int.parse(_bathroomsController.text),
-//           "living_rooms_nb": int.parse(_livingRoomsController.text),
-//           "compartment_number": int.parse(_compartmentNumberController.text),
-//           "main_image": _uploadedMainImageUrl,
-//           "other_images": _uploadedOtherImagesUrls,
-//           "location": [
-//             _addressController.text,
-//             _latitude?.toString() ?? "",
-//             _longitude?.toString() ?? ""
-//           ],
-//           "owner_id": authProvider.currentUser!.id,
-//           "town_id": _selectedTown!.id,
-//           "category_property_id": _selectedCategory!.id,
-//           "certified": false,
-//           "has_internal_kitchen": _hasInternalKitchen,
-//           "has_external_kitchen": _hasExternalKitchen,
-//           "has_a_parking": _hasAParking,
-//           "has_air_conditioning": _hasAirConditioning,
-//           "has_security_guards": _hasSecurityGuards,
-//           "has_balcony": _hasBalcony,
-//           "has_send_verified_request": false,
-//           // NOUVEAUX CHAMPS
-//           "water_supply": _selectedWaterSupply,
-//           "electrical_connection": _selectedElectricalConnection,
-//           "status": _selectedStatus,
-//         };
-
-//         await _propertyService.createProperty(propertyData, accessToken);
-
-//         if (mounted) {
-//           _showSuccessSnackbar(AppTranslations.get('property_created_success', locale, 'Propriété créée avec succès !'));
-//           Navigator.of(context).pop();
-//         }
-
+//         final url = await _mediaService.uploadSingleFile(file);
+//         urls.add(url);
 //       } catch (e) {
-//         _showErrorSnackbar('${AppTranslations.get('creation_error', locale, 'Erreur lors de la création')}: ${e.toString()}');
-//       } finally {
-//         if (mounted) {
-//           setState(() {
-//             _isSubmitting = false;
-//           });
-//         }
+//         throw Exception('Erreur lors de l\'upload d\'une image supplémentaire: $e');
+//       }
+//     }
+//     return urls;
+//   }
+
+//   void _removeMainImage() => setState(() {
+//         _selectedMainImage = null;
+//       });
+
+//   void _removeOtherImage(int index) => setState(() {
+//         _selectedOtherImages.removeAt(index);
+//       });
+
+//   // =========================================================
+//   //  SOUMISSION CORRIGÉE
+//   // =========================================================
+//   Future<void> _handleCreateProperty() async {
+//     if (!_formKey.currentState!.validate()) return;
+    
+//     final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
+//     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+//     final accessToken = authProvider.accessToken;
+//     final user = authProvider.currentUser;
+
+//     // Validations
+//     if (_selectedTown == null) {
+//       _showSnackBar(AppTranslations.get('select_town_required', locale, 'Veuillez sélectionner une ville'), isError: true);
+//       return;
+//     }
+//     if (_selectedCategory == null) {
+//       _showSnackBar(AppTranslations.get('select_category_required', locale, 'Veuillez sélectionner une catégorie'), isError: true);
+//       return;
+//     }
+//     if (_selectedMainImage == null) {
+//       _showSnackBar(AppTranslations.get('main_image_required', locale, 'Image principale requise'), isError: true);
+//       return;
+//     }
+//     if (accessToken == null || user == null || user.id.isEmpty) {
+//       _showSnackBar(AppTranslations.get('login_required', locale, 'Vous devez être connecté'), isError: true);
+//       return;
+//     }
+
+//     setState(() => _isSubmitting = true);
+
+//     try {
+//       // ÉTAPE 1: Upload des images
+//       setState(() => _isUploadingImages = true);
+      
+//       final String? mainImageUrl = await _uploadMainImage();
+//       final List<String> otherImagesUrls = await _uploadOtherImages();
+      
+//       setState(() => _isUploadingImages = false);
+
+//       if (mainImageUrl == null) {
+//         throw Exception('Échec de l\'upload de l\'image principale');
+//       }
+
+//       // ÉTAPE 2: Création de la propriété avec les URLs
+//       final propertyData = {
+//         "title": _titleController.text,
+//         "description": _descriptionController.text,
+//         "address": _addressController.text,
+//         "monthly_price": int.parse(_monthlyPriceController.text),
+//         "area": int.parse(_areaController.text),
+//         "rooms_nb": int.parse(_roomsController.text),
+//         "bathrooms_nb": int.parse(_bathroomsController.text),
+//         "living_rooms_nb": int.parse(_livingRoomsController.text),
+//         "compartment_number": int.parse(_compartmentNumberController.text),
+//         "main_image": mainImageUrl,
+//         "other_images": otherImagesUrls,
+//         "location": [_addressController.text, _latitude?.toString() ?? "", _longitude?.toString() ?? ""],
+//         "owner_id": user.id,
+//         "town_id": _selectedTown!.id,
+//         "category_property_id": _selectedCategory!.id,
+//         "certified": false,
+//         "has_internal_kitchen": _hasInternalKitchen,
+//         "has_external_kitchen": _hasExternalKitchen,
+//         "has_a_parking": _hasAParking,
+//         "has_air_conditioning": _hasAirConditioning,
+//         "has_security_guards": _hasSecurityGuards,
+//         "has_balcony": _hasBalcony,
+//         "has_send_verified_request": false,
+//         "water_supply": _selectedWaterSupply,
+//         "electrical_connection": _selectedElectricalConnection,
+//         "status": _selectedStatus,
+//       };
+
+//       await _propertyService.createProperty(propertyData, accessToken);
+
+//       if (mounted) {
+//         _showSnackBar(AppTranslations.get('property_created_success', locale, 'Propriété créée avec succès'));
+//         Navigator.of(context).pop();
+//       }
+//     } catch (e) {
+//       if (mounted) {
+//         _showSnackBar(
+//           '${AppTranslations.get('creation_error', locale, 'Erreur lors de la création')}: ${e.toString()}', 
+//           isError: true
+//         );
+//       }
+//     } finally {
+//       if (mounted) {
+//         setState(() {
+//           _isSubmitting = false;
+//           _isUploadingImages = false;
+//         });
 //       }
 //     }
 //   }
 
-//   // === MÉTHODES D'AFFICHAGE DES MESSAGES ===
-
-//   /// Affiche un message d'erreur
-//   void _showErrorSnackbar(String message) {
+//   // =========================================================
+//   //  HELPERS
+//   // =========================================================
+//   void _showSnackBar(String message, {bool isError = false}) {
 //     ScaffoldMessenger.of(context).showSnackBar(
 //       SnackBar(
 //         content: Text(message),
-//         backgroundColor: AppThemes.getErrorColor(context),
+//         backgroundColor: isError ? AppThemes.getErrorColor(context) : AppThemes.getSuccessColor(context),
 //       ),
 //     );
 //   }
 
-//   /// Affiche un message de succès
-//   void _showSuccessSnackbar(String message) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(
-//         content: Text(message),
-//         backgroundColor: AppThemes.getSuccessColor(context),
-//       ),
+//   // =========================================================
+//   //  WIDGETS
+//   // =========================================================
+//   Widget _buildSectionTitle(String title) {
+//     return Text(
+//       title,
+//       style: Theme.of(context).textTheme.titleLarge?.copyWith(
+//             color: Theme.of(context).colorScheme.primary,
+//             fontWeight: FontWeight.bold,
+//           ),
 //     );
 //   }
 
-//   // === WIDGETS POUR LES SECTIONS ===
-
-//   /// Widget pour la section image principale
 //   Widget _buildMainImageSection(Locale locale) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,7 +438,6 @@
 //           ),
 //         ),
 //         const SizedBox(height: 8),
-        
 //         Container(
 //           width: double.infinity,
 //           padding: const EdgeInsets.all(16),
@@ -581,41 +448,28 @@
 //           child: Column(
 //             children: [
 //               if (_selectedMainImage != null) ...[
-//                 Stack(
-//                   children: [
-//                     Container(
-//                       width: 200,
-//                       height: 150,
-//                       decoration: BoxDecoration(
-//                         borderRadius: BorderRadius.circular(12),
-//                         image: DecorationImage(
-//                           image: FileImage(_selectedMainImage!),
-//                           fit: BoxFit.cover,
-//                         ),
-//                       ),
+//                 Container(
+//                   width: 200,
+//                   height: 150,
+//                   decoration: BoxDecoration(
+//                     borderRadius: BorderRadius.circular(12),
+//                     image: DecorationImage(
+//                       image: FileImage(_selectedMainImage!),
+//                       fit: BoxFit.cover,
 //                     ),
-//                     if (_isUploadingMainImage)
-//                       Positioned.fill(
-//                         child: Container(
-//                           decoration: BoxDecoration(
-//                             color: Colors.black54,
-//                             borderRadius: BorderRadius.circular(12),
-//                           ),
-//                           child: const Center(
-//                             child: CircularProgressIndicator(color: Colors.white),
-//                           ),
-//                         ),
-//                       ),
-//                   ],
+//                   ),
 //                 ),
 //                 const SizedBox(height: 12),
-//                 if (_uploadedMainImageUrl != null)
-//                   Text(
-//                     AppTranslations.get('upload_success', locale, 'Upload réussi ✓'),
-//                     style: TextStyle(
-//                       color: AppThemes.getSuccessColor(context),
-//                       fontWeight: FontWeight.bold,
-//                     ),
+//                 if (_isUploadingImages)
+//                   Column(
+//                     children: [
+//                       const CircularProgressIndicator(),
+//                       const SizedBox(height: 8),
+//                       Text(
+//                         AppTranslations.get('uploading_image', locale, 'Upload en cours...'),
+//                         style: TextStyle(color: Colors.grey.shade600),
+//                       ),
+//                     ],
 //                   ),
 //                 const SizedBox(height: 12),
 //                 ElevatedButton.icon(
@@ -640,7 +494,6 @@
 //                 ),
 //               ],
 //               const SizedBox(height: 16),
-              
 //               ElevatedButton.icon(
 //                 onPressed: _pickMainImage,
 //                 icon: const Icon(Icons.photo_library),
@@ -653,7 +506,6 @@
 //     );
 //   }
 
-//   /// Widget pour la section images supplémentaires
 //   Widget _buildOtherImagesSection(Locale locale) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,7 +518,6 @@
 //           ),
 //         ),
 //         const SizedBox(height: 8),
-        
 //         Container(
 //           width: double.infinity,
 //           padding: const EdgeInsets.all(16),
@@ -682,9 +533,9 @@
 //                   child: ListView.builder(
 //                     scrollDirection: Axis.horizontal,
 //                     itemCount: _selectedOtherImages.length,
-//                     itemBuilder: (context, index) {
+//                     itemBuilder: (_, index) {
 //                       return Padding(
-//                         padding: const EdgeInsets.only(right: 8.0),
+//                         padding: const EdgeInsets.only(right: 8),
 //                         child: Stack(
 //                           children: [
 //                             Container(
@@ -719,8 +570,17 @@
 //                   ),
 //                 ),
 //                 const SizedBox(height: 12),
-//                 if (_isUploadingOtherImages)
-//                   const CircularProgressIndicator(),
+//                 if (_isUploadingImages)
+//                   Column(
+//                     children: [
+//                       const CircularProgressIndicator(),
+//                       const SizedBox(height: 8),
+//                       Text(
+//                         AppTranslations.get('uploading_images', locale, 'Upload des images en cours...'),
+//                         style: TextStyle(color: Colors.grey.shade600),
+//                       ),
+//                     ],
+//                   ),
 //                 const SizedBox(height: 12),
 //               ] else ...[
 //                 Icon(
@@ -735,7 +595,6 @@
 //                 ),
 //               ],
 //               const SizedBox(height: 16),
-              
 //               OutlinedButton.icon(
 //                 onPressed: _pickOtherImages,
 //                 icon: const Icon(Icons.add_photo_alternate),
@@ -748,7 +607,6 @@
 //     );
 //   }
 
-//   /// Widget pour l'autocomplete des villes
 //   Widget _buildTownAutocomplete(Locale locale) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
@@ -773,12 +631,8 @@
 //                     : null,
 //           ),
 //           onTap: () {
-//             if (_townSearchController.text.isEmpty) {
-//               _loadAllTowns();
-//             }
-//             setState(() {
-//               _showTownDropdown = true;
-//             });
+//             if (_townSearchController.text.isEmpty) _loadAllTowns();
+//             setState(() => _showTownDropdown = true);
 //           },
 //           validator: (value) {
 //             if (_selectedTown == null) {
@@ -787,25 +641,19 @@
 //             return null;
 //           },
 //         ),
-        
 //         if (_showTownDropdown && _filteredTowns.isNotEmpty)
 //           Container(
+//             margin: const EdgeInsets.only(top: 4),
+//             constraints: const BoxConstraints(maxHeight: 200),
 //             decoration: BoxDecoration(
 //               color: Theme.of(context).colorScheme.surface,
 //               borderRadius: BorderRadius.circular(8),
-//               boxShadow: [
-//                 BoxShadow(
-//                   blurRadius: 4,
-//                   color: Colors.black.withOpacity(0.1),
-//                 ),
-//               ],
+//               boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black.withOpacity(0.1))],
 //             ),
-//             margin: const EdgeInsets.only(top: 4),
-//             constraints: const BoxConstraints(maxHeight: 200),
 //             child: ListView.builder(
 //               shrinkWrap: true,
 //               itemCount: _filteredTowns.length,
-//               itemBuilder: (context, index) {
+//               itemBuilder: (_, index) {
 //                 final town = _filteredTowns[index];
 //                 return ListTile(
 //                   leading: const Icon(Icons.location_city, size: 20),
@@ -817,23 +665,10 @@
 //               },
 //             ),
 //           ),
-        
-//         if (_showTownDropdown && _townSearchController.text.isNotEmpty && _filteredTowns.isEmpty && !_isSearchingTowns)
-//           Container(
-//             padding: const EdgeInsets.all(16),
-//             child: Text(
-//               AppTranslations.get('no_town_found', locale, 'Aucune ville trouvée'),
-//               style: TextStyle(
-//                 color: Theme.of(context).colorScheme.error,
-//                 fontStyle: FontStyle.italic,
-//               ),
-//             ),
-//           ),
 //       ],
 //     );
 //   }
 
-//   /// Widget pour l'autocomplete des catégories
 //   Widget _buildCategoryAutocomplete(Locale locale) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
@@ -858,12 +693,8 @@
 //                     : null,
 //           ),
 //           onTap: () {
-//             if (_categorySearchController.text.isEmpty) {
-//               _loadAllCategories();
-//             }
-//             setState(() {
-//               _showCategoryDropdown = true;
-//             });
+//             if (_categorySearchController.text.isEmpty) _loadAllCategories();
+//             setState(() => _showCategoryDropdown = true);
 //           },
 //           validator: (value) {
 //             if (_selectedCategory == null) {
@@ -872,25 +703,19 @@
 //             return null;
 //           },
 //         ),
-        
 //         if (_showCategoryDropdown && _filteredCategories.isNotEmpty)
 //           Container(
+//             margin: const EdgeInsets.only(top: 4),
+//             constraints: const BoxConstraints(maxHeight: 200),
 //             decoration: BoxDecoration(
 //               color: Theme.of(context).colorScheme.surface,
 //               borderRadius: BorderRadius.circular(8),
-//               boxShadow: [
-//                 BoxShadow(
-//                   blurRadius: 4,
-//                   color: Colors.black.withOpacity(0.1),
-//                 ),
-//               ],
+//               boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black.withOpacity(0.1))],
 //             ),
-//             margin: const EdgeInsets.only(top: 4),
-//             constraints: const BoxConstraints(maxHeight: 200),
 //             child: ListView.builder(
 //               shrinkWrap: true,
 //               itemCount: _filteredCategories.length,
-//               itemBuilder: (context, index) {
+//               itemBuilder: (_, index) {
 //                 final category = _filteredCategories[index];
 //                 return ListTile(
 //                   leading: const Icon(Icons.category, size: 20),
@@ -901,23 +726,10 @@
 //               },
 //             ),
 //           ),
-        
-//         if (_showCategoryDropdown && _categorySearchController.text.isNotEmpty && _filteredCategories.isEmpty && !_isSearchingCategories)
-//           Container(
-//             padding: const EdgeInsets.all(16),
-//             child: Text(
-//               AppTranslations.get('no_category_found', locale, 'Aucune catégorie trouvée'),
-//               style: TextStyle(
-//                 color: Theme.of(context).colorScheme.error,
-//                 fontStyle: FontStyle.italic,
-//               ),
-//             ),
-//           ),
 //       ],
 //     );
 //   }
 
-//   /// Widget pour la section localisation GPS
 //   Widget _buildLocationSection(Locale locale) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
@@ -930,7 +742,6 @@
 //           ),
 //         ),
 //         const SizedBox(height: 8),
-        
 //         Container(
 //           padding: const EdgeInsets.all(16),
 //           decoration: BoxDecoration(
@@ -970,13 +781,12 @@
 //                 ),
 //               ],
 //               const SizedBox(height: 12),
-              
 //               ElevatedButton.icon(
 //                 onPressed: _isGettingLocation ? null : _getUserLocation,
-//                 icon: _isGettingLocation 
+//                 icon: _isGettingLocation
 //                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
 //                     : const Icon(Icons.gps_fixed),
-//                 label: Text(_isGettingLocation 
+//                 label: Text(_isGettingLocation
 //                     ? AppTranslations.get('detecting', locale, 'Détection...')
 //                     : AppTranslations.get('use_my_location', locale, 'Utiliser ma position')),
 //               ),
@@ -987,7 +797,6 @@
 //     );
 //   }
 
-//   /// Widget pour la section équipements
 //   Widget _buildEquipmentSection(Locale locale) {
 //     final equipmentItems = [
 //       {
@@ -1039,7 +848,6 @@
 //           ),
 //         ),
 //         const SizedBox(height: 8),
-        
 //         Container(
 //           padding: const EdgeInsets.all(16),
 //           decoration: BoxDecoration(
@@ -1056,7 +864,7 @@
 //               childAspectRatio: 3.5,
 //             ),
 //             itemCount: equipmentItems.length,
-//             itemBuilder: (context, index) {
+//             itemBuilder: (_, index) {
 //               final item = equipmentItems[index];
 //               return _buildEquipmentCheckbox(
 //                 item['label'] as String,
@@ -1071,7 +879,6 @@
 //     );
 //   }
 
-//   /// Widget pour une checkbox d'équipement
 //   Widget _buildEquipmentCheckbox(String label, bool value, Function(bool?) onChanged, IconData icon) {
 //     return Container(
 //       decoration: BoxDecoration(
@@ -1101,17 +908,44 @@
 //     );
 //   }
 
-//   // === NOUVEAUX WIDGETS POUR LES SELECTS ===
+//   Map<String, String> _getWaterSupplyOptions(Locale locale) {
+//     return {
+//       'not_available': AppTranslations.get('water_not_available', locale, 'Non disponible'),
+//       'connected_public_supply': AppTranslations.get('water_public_supply', locale, 'Réseau public'),
+//       'stand_alone_system': AppTranslations.get('water_stand_alone', locale, 'Système autonome'),
+//       'stand_alone_system_with_mains_connection': AppTranslations.get('water_hybrid', locale, 'Système hybride'),
+//     };
+//   }
 
-//   /// Widget pour le dropdown d'alimentation en eau
-//   Widget _buildWaterSupplyDropdown(Locale locale) {
-//     final options = _getWaterSupplyOptions(locale);
-    
+//   Map<String, String> _getElectricalConnectionOptions(Locale locale) {
+//     return {
+//       'not_available': AppTranslations.get('electric_not_available', locale, 'Non disponible'),
+//       'connected_public_supply': AppTranslations.get('electric_public_supply', locale, 'Réseau public'),
+//       'stand_alone_system': AppTranslations.get('electric_stand_alone', locale, 'Système autonome'),
+//       'stand_alone_system_with_mains_connection': AppTranslations.get('electric_hybrid', locale, 'Système hybride'),
+//     };
+//   }
+
+//   Map<String, String> _getStatusOptions(Locale locale) {
+//     return {
+//       'free': AppTranslations.get('status_free', locale, 'Libre'),
+//       'busy': AppTranslations.get('status_busy', locale, 'Occupé'),
+//       'prev_advise': AppTranslations.get('status_prev_advise', locale, 'Préavis'),
+//     };
+//   }
+
+//   Widget _buildDropdown({
+//     required String label,
+//     required String value,
+//     required Map<String, String> items,
+//     required Function(String?) onChanged,
+//     required String locale,
+//   }) {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
 //         Text(
-//           '${AppTranslations.get('water_supply', locale, 'Alimentation en eau')} *',
+//           '$label *',
 //           style: TextStyle(
 //             fontWeight: FontWeight.w500,
 //             color: Theme.of(context).colorScheme.secondary,
@@ -1124,26 +958,21 @@
 //             borderRadius: BorderRadius.circular(8),
 //           ),
 //           child: DropdownButtonFormField<String>(
-//             value: _selectedWaterSupply,
-//             onChanged: (String? newValue) {
-//               setState(() {
-//                 _selectedWaterSupply = newValue!;
-//               });
-//             },
-//             items: options.entries.map((entry) {
+//             value: value,
+//             onChanged: onChanged,
+//             items: items.entries.map((entry) {
 //               return DropdownMenuItem<String>(
 //                 value: entry.key,
 //                 child: Text(entry.value),
 //               );
 //             }).toList(),
-//             decoration: InputDecoration(
-//               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//             decoration: const InputDecoration(
+//               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 //               border: InputBorder.none,
-//               hintText: AppTranslations.get('select_water_supply', locale, 'Sélectionnez une option'),
 //             ),
 //             validator: (value) {
 //               if (value == null || value.isEmpty) {
-//                 return AppTranslations.get('water_supply_required', locale, 'Ce champ est requis');
+//                 return AppTranslations.get('field_required', Locale(locale), 'Ce champ est requis');
 //               }
 //               return null;
 //             },
@@ -1153,124 +982,51 @@
 //     );
 //   }
 
-//   /// Widget pour le dropdown de connexion électrique
-//   Widget _buildElectricalConnectionDropdown(Locale locale) {
-//     final options = _getElectricalConnectionOptions(locale);
-    
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           '${AppTranslations.get('electrical_connection', locale, 'Connexion électrique')} *',
-//           style: TextStyle(
-//             fontWeight: FontWeight.w500,
-//             color: Theme.of(context).colorScheme.secondary,
-//           ),
-//         ),
-//         const SizedBox(height: 8),
-//         Container(
-//           decoration: BoxDecoration(
-//             border: Border.all(color: Colors.grey.shade300),
-//             borderRadius: BorderRadius.circular(8),
-//           ),
-//           child: DropdownButtonFormField<String>(
-//             value: _selectedElectricalConnection,
-//             onChanged: (String? newValue) {
-//               setState(() {
-//                 _selectedElectricalConnection = newValue!;
-//               });
-//             },
-//             items: options.entries.map((entry) {
-//               return DropdownMenuItem<String>(
-//                 value: entry.key,
-//                 child: Text(entry.value),
-//               );
-//             }).toList(),
-//             decoration: InputDecoration(
-//               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-//               border: InputBorder.none,
-//               hintText: AppTranslations.get('select_electrical_connection', locale, 'Sélectionnez une option'),
+//   Widget _buildSubmitButton(Locale locale) {
+//     return ElevatedButton(
+//       onPressed: (_isSubmitting || _isUploadingImages) ? null : _handleCreateProperty,
+//       style: ElevatedButton.styleFrom(
+//         backgroundColor: Theme.of(context).colorScheme.primary,
+//         foregroundColor: Colors.white,
+//         padding: const EdgeInsets.symmetric(vertical: 16),
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//       ),
+//       child: _isSubmitting || _isUploadingImages
+//           ? Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 const SizedBox(
+//                   width: 20,
+//                   height: 20,
+//                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+//                 ),
+//                 const SizedBox(width: 12),
+//                 Text(
+//                   _isUploadingImages 
+//                     ? AppTranslations.get('uploading_images', locale, 'Upload des images...')
+//                     : AppTranslations.get('creating_property', locale, 'Création en cours...'),
+//                   style: const TextStyle(fontSize: 16),
+//                 ),
+//               ],
+//             )
+//           : Text(
+//               AppTranslations.get('create_property', locale, 'Créer la propriété'),
+//               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
 //             ),
-//             validator: (value) {
-//               if (value == null || value.isEmpty) {
-//                 return AppTranslations.get('electrical_connection_required', locale, 'Ce champ est requis');
-//               }
-//               return null;
-//             },
-//           ),
-//         ),
-//       ],
 //     );
 //   }
 
-//   /// Widget pour le dropdown de statut
-//   Widget _buildStatusDropdown(Locale locale) {
-//     final options = _getStatusOptions(locale);
-    
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           '${AppTranslations.get('status', locale, 'Statut')} *',
-//           style: TextStyle(
-//             fontWeight: FontWeight.w500,
-//             color: Theme.of(context).colorScheme.secondary,
-//           ),
-//         ),
-//         const SizedBox(height: 8),
-//         Container(
-//           decoration: BoxDecoration(
-//             border: Border.all(color: Colors.grey.shade300),
-//             borderRadius: BorderRadius.circular(8),
-//           ),
-//           child: DropdownButtonFormField<String>(
-//             value: _selectedStatus,
-//             onChanged: (String? newValue) {
-//               setState(() {
-//                 _selectedStatus = newValue!;
-//               });
-//             },
-//             items: options.entries.map((entry) {
-//               return DropdownMenuItem<String>(
-//                 value: entry.key,
-//                 child: Text(entry.value),
-//               );
-//             }).toList(),
-//             decoration: InputDecoration(
-//               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-//               border: InputBorder.none,
-//               hintText: AppTranslations.get('select_status', locale, 'Sélectionnez un statut'),
-//             ),
-//             validator: (value) {
-//               if (value == null || value.isEmpty) {
-//                 return AppTranslations.get('status_required', locale, 'Ce champ est requis');
-//               }
-//               return null;
-//             },
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
+//   // =========================================================
+//   //  BUILD
+//   // =========================================================
 //   @override
 //   Widget build(BuildContext context) {
-//     final settingsProvider = Provider.of<SettingsProvider>(context);
-//     final locale = settingsProvider.locale;
+//     final locale = Provider.of<SettingsProvider>(context).locale;
 
 //     return GestureDetector(
 //       onTap: () {
-//         // Ferme les dropdowns lorsqu'on tape ailleurs
-//         if (_showTownDropdown) {
-//           setState(() {
-//             _showTownDropdown = false;
-//           });
-//         }
-//         if (_showCategoryDropdown) {
-//           setState(() {
-//             _showCategoryDropdown = false;
-//           });
-//         }
+//         if (_showTownDropdown) setState(() => _showTownDropdown = false);
+//         if (_showCategoryDropdown) setState(() => _showCategoryDropdown = false);
 //         FocusScope.of(context).unfocus();
 //       },
 //       child: Scaffold(
@@ -1279,40 +1035,32 @@
 //           actions: [
 //             IconButton(
 //               icon: const Icon(Icons.help_outline),
-//               onPressed: () {
-//                 showDialog(
-//                   context: context,
-//                   builder: (context) => AlertDialog(
-//                     title: Text(AppTranslations.get('help', locale, 'Aide')),
-//                     content: Text(AppTranslations.get('fill_required_fields', locale, 'Remplissez tous les champs obligatoires (*) pour créer votre propriété.')),
-//                     actions: [
-//                       TextButton(
-//                         onPressed: () => Navigator.of(context).pop(),
-//                         child: Text(AppTranslations.get('ok', locale, 'OK')),
-//                       ),
-//                     ],
-//                   ),
-//                 );
-//               },
+//               onPressed: () => showDialog(
+//                 context: context,
+//                 builder: (_) => AlertDialog(
+//                   title: Text(AppTranslations.get('help', locale, 'Aide')),
+//                   content: Text(AppTranslations.get('fill_required_fields', locale, 'Remplissez tous les champs obligatoires (*) pour créer votre propriété.')),
+//                   actions: [
+//                     TextButton(
+//                       onPressed: () => Navigator.of(context).pop(),
+//                       child: Text(AppTranslations.get('ok', locale, 'OK')),
+//                     ),
+//                   ],
+//                 ),
+//               ),
 //             ),
 //           ],
 //         ),
 //         body: SingleChildScrollView(
-//           padding: const EdgeInsets.all(16.0),
+//           padding: const EdgeInsets.all(16),
 //           child: Form(
 //             key: _formKey,
 //             child: Column(
 //               crossAxisAlignment: CrossAxisAlignment.stretch,
 //               children: [
-//                 // === SECTION INFORMATIONS DE BASE ===
-//                 Text(
-//                   AppTranslations.get('basic_information', locale, 'Informations de base'),
-//                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-//                     color: Theme.of(context).primaryColor,
-//                   ),
-//                 ),
+//                 // Basic info
+//                 _buildSectionTitle(AppTranslations.get('basic_information', locale, 'Informations de base')),
 //                 const SizedBox(height: 16),
-
 //                 TextFormField(
 //                   controller: _titleController,
 //                   decoration: InputDecoration(
@@ -1327,7 +1075,6 @@
 //                   },
 //                 ),
 //                 const SizedBox(height: 16),
-
 //                 TextFormField(
 //                   controller: _descriptionController,
 //                   decoration: InputDecoration(
@@ -1343,7 +1090,6 @@
 //                   },
 //                 ),
 //                 const SizedBox(height: 16),
-
 //                 TextFormField(
 //                   controller: _addressController,
 //                   decoration: InputDecoration(
@@ -1357,17 +1103,11 @@
 //                     return null;
 //                   },
 //                 ),
-//                 const SizedBox(height: 16),
+//                 const SizedBox(height: 24),
 
-//                 // === SECTION CARACTÉRISTIQUES ===
-//                 Text(
-//                   AppTranslations.get('characteristics', locale, 'Caractéristiques'),
-//                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-//                     color: Theme.of(context).primaryColor,
-//                   ),
-//                 ),
+//                 // Characteristics
+//                 _buildSectionTitle(AppTranslations.get('characteristics', locale, 'Caractéristiques')),
 //                 const SizedBox(height: 16),
-
 //                 Row(
 //                   children: [
 //                     Expanded(
@@ -1412,14 +1152,13 @@
 //                   ],
 //                 ),
 //                 const SizedBox(height: 16),
-
 //                 Row(
 //                   children: [
 //                     Expanded(
 //                       child: TextFormField(
 //                         controller: _roomsController,
 //                         decoration: InputDecoration(
-//                           labelText: '${AppTranslations.get('rooms', locale, 'Nombre de chambres')} *',
+//                           labelText: '${AppTranslations.get('rooms', locale, 'Chambres')} *',
 //                           hintText: '3',
 //                         ),
 //                         keyboardType: TextInputType.number,
@@ -1457,7 +1196,6 @@
 //                   ],
 //                 ),
 //                 const SizedBox(height: 16),
-
 //                 Row(
 //                   children: [
 //                     Expanded(
@@ -1503,85 +1241,58 @@
 //                 ),
 //                 const SizedBox(height: 24),
 
-//                 // === SECTION SERVICES ET STATUT ===
-//                 Text(
-//                   AppTranslations.get('services_status', locale, 'Services et Statut'),
-//                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-//                     color: Theme.of(context).primaryColor,
-//                   ),
+//                 // Services & status
+//                 _buildSectionTitle(AppTranslations.get('services_status', locale, 'Services et Statut')),
+//                 const SizedBox(height: 16),
+//                 _buildDropdown(
+//                   label: AppTranslations.get('water_supply', locale, 'Alimentation en eau'),
+//                   value: _selectedWaterSupply,
+//                   items: _getWaterSupplyOptions(locale),
+//                   onChanged: (v) => setState(() => _selectedWaterSupply = v!),
+//                   locale: locale.languageCode,
 //                 ),
 //                 const SizedBox(height: 16),
-
-//                 _buildWaterSupplyDropdown(locale),
+//                 _buildDropdown(
+//                   label: AppTranslations.get('electrical_connection', locale, 'Connexion électrique'),
+//                   value: _selectedElectricalConnection,
+//                   items: _getElectricalConnectionOptions(locale),
+//                   onChanged: (v) => setState(() => _selectedElectricalConnection = v!),
+//                   locale: locale.languageCode,
+//                 ),
 //                 const SizedBox(height: 16),
-
-//                 _buildElectricalConnectionDropdown(locale),
-//                 const SizedBox(height: 16),
-
-//                 _buildStatusDropdown(locale),
+//                 _buildDropdown(
+//                   label: AppTranslations.get('status', locale, 'Statut'),
+//                   value: _selectedStatus,
+//                   items: _getStatusOptions(locale),
+//                   onChanged: (v) => setState(() => _selectedStatus = v!),
+//                   locale: locale.languageCode,
+//                 ),
 //                 const SizedBox(height: 24),
 
-//                 // === SECTION LOCALISATION ===
-//                 Text(
-//                   AppTranslations.get('location', locale, 'Localisation'),
-//                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-//                     color: Theme.of(context).primaryColor,
-//                   ),
-//                 ),
+//                 // Location
+//                 _buildSectionTitle(AppTranslations.get('location', locale, 'Localisation')),
 //                 const SizedBox(height: 16),
-
 //                 _buildTownAutocomplete(locale),
 //                 const SizedBox(height: 16),
-
 //                 _buildCategoryAutocomplete(locale),
 //                 const SizedBox(height: 16),
-
 //                 _buildLocationSection(locale),
 //                 const SizedBox(height: 24),
 
-//                 // === SECTION IMAGES ===
-//                 Text(
-//                   AppTranslations.get('images', locale, 'Images'),
-//                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-//                     color: Theme.of(context).primaryColor,
-//                   ),
-//                 ),
+//                 // Images
+//                 _buildSectionTitle(AppTranslations.get('images', locale, 'Images')),
 //                 const SizedBox(height: 16),
-
 //                 _buildMainImageSection(locale),
 //                 const SizedBox(height: 16),
-
 //                 _buildOtherImagesSection(locale),
 //                 const SizedBox(height: 24),
 
-//                 // === SECTION ÉQUIPEMENTS ===
+//                 // Equipment
 //                 _buildEquipmentSection(locale),
 //                 const SizedBox(height: 32),
 
-//                 // === BOUTON DE SOUMISSION ===
-//                 ElevatedButton(
-//                   onPressed: _isSubmitting ? null : _handleCreateProperty,
-//                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: primaryColor1,
-//                     foregroundColor: Colors.white,
-//                     padding: const EdgeInsets.symmetric(vertical: 16),
-//                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(10),
-//                     ),
-//                   ),
-//                   child: _isSubmitting
-//                       ? const SizedBox(
-//                           height: 20, 
-//                           width: 20, 
-//                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-//                       : Text(
-//                           AppTranslations.get('create_property', locale, 'Créer la propriété'),
-//                           style: const TextStyle(
-//                             fontSize: 18,
-//                             fontWeight: FontWeight.bold,
-//                           ),
-//                         ),
-//                 ),
+//                 // Submit
+//                 _buildSubmitButton(locale),
 //                 const SizedBox(height: 30),
 //               ],
 //             ),
@@ -1591,12 +1302,7 @@
 //     );
 //   }
 // }
-
 // lib/pages/create_property_page.dart
-// VERSION CORRIGÉE & MODERNE (basée sur le fichier original fonctionnel)
-// Seule la partie visuelle a été actualisée : couleurs, formes, espacements, animations.
-// Tous les champs, clés, services, modèles, traductions restent identiques.
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1657,10 +1363,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
   // === GESTION DES IMAGES ===
   File? _selectedMainImage;
   List<File> _selectedOtherImages = [];
-  String? _uploadedMainImageUrl;
-  List<String> _uploadedOtherImagesUrls = [];
-  bool _isUploadingMainImage = false;
-  bool _isUploadingOtherImages = false;
+  bool _isUploadingImages = false;
 
   // === ÉQUIPEMENTS (CHECKBOX) ===
   bool _hasInternalKitchen = false;
@@ -1676,7 +1379,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
   double? _longitude;
   bool _isGettingLocation = false;
 
-  // === NOUVEAUX CHAMPS SELECT ===
+  // === CHAMPS SELECT ===
   String _selectedWaterSupply = 'not_available';
   String _selectedElectricalConnection = 'not_available';
   String _selectedStatus = 'free';
@@ -1711,7 +1414,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
   }
 
   // =========================================================
-  //  DATA LOADING (identique à l’original)
+  //  DATA LOADING
   // =========================================================
   Future<void> _loadAllTowns() async {
     try {
@@ -1750,12 +1453,12 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
       });
     } catch (e) {
       setState(() => _isGettingLocation = false);
-      _showSnackBar(AppTranslations.get('location_error', const Locale('fr'), 'Erreur de localisation'), isError: true);
+      _showSnackBar('Erreur de localisation', isError: true);
     }
   }
 
   // =========================================================
-  //  AUTOCOMPLETE (identique à l’original)
+  //  AUTOCOMPLETE
   // =========================================================
   void _onTownSearchChanged() async {
     final query = _townSearchController.text.trim();
@@ -1838,7 +1541,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
   }
 
   // =========================================================
-  //  IMAGES (identique à l’original)
+  //  GESTION DES IMAGES CORRIGÉE
   // =========================================================
   Future<void> _pickMainImage() async {
     try {
@@ -1850,10 +1553,9 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
       );
       if (pickedFile != null) {
         setState(() => _selectedMainImage = File(pickedFile.path));
-        await _uploadMainImage();
       }
     } catch (e) {
-      _showSnackBar(AppTranslations.get('image_selection_error', const Locale('fr'), 'Erreur de sélection'), isError: true);
+      _showSnackBar('Erreur de sélection d\'image', isError: true);
     }
   }
 
@@ -1866,90 +1568,102 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
       );
       if (pickedFiles.isNotEmpty) {
         setState(() => _selectedOtherImages.addAll(pickedFiles.map((f) => File(f.path))));
-        await _uploadOtherImages();
       }
     } catch (e) {
-      _showSnackBar(AppTranslations.get('image_selection_error', const Locale('fr'), 'Erreur de sélection'), isError: true);
+      _showSnackBar('Erreur de sélection d\'images', isError: true);
     }
   }
 
-  Future<void> _uploadMainImage() async {
-    if (_selectedMainImage == null) return;
-    setState(() => _isUploadingMainImage = true);
+  Future<String?> _uploadMainImage() async {
+    if (_selectedMainImage == null) return null;
+    
     try {
+      debugPrint('🔄 Upload de l\'image principale...');
       final url = await _mediaService.uploadSingleFile(_selectedMainImage!);
-      setState(() {
-        _uploadedMainImageUrl = url;
-        _isUploadingMainImage = false;
-      });
-      _showSnackBar(AppTranslations.get('upload_success', const Locale('fr'), 'Upload réussi'));
+      debugPrint('✅ Image principale uploadée: $url');
+      return url;
     } catch (e) {
-      setState(() => _isUploadingMainImage = false);
-      _showSnackBar(AppTranslations.get('upload_error', const Locale('fr'), 'Erreur d\'upload'), isError: true);
+      debugPrint('❌ Erreur upload image principale: $e');
+      throw Exception('Erreur lors de l\'upload de l\'image principale: $e');
     }
   }
 
-  Future<void> _uploadOtherImages() async {
-    if (_selectedOtherImages.isEmpty) return;
-    setState(() => _isUploadingOtherImages = true);
+  Future<List<String>> _uploadOtherImages() async {
+    if (_selectedOtherImages.isEmpty) return [];
+    
+    final urls = <String>[];
     try {
-      final urls = <String>[];
-      for (final file in _selectedOtherImages) {
-        urls.add(await _mediaService.uploadSingleFile(file));
-      }
-      setState(() {
-        _uploadedOtherImagesUrls.addAll(urls);
-        _isUploadingOtherImages = false;
-      });
-      _showSnackBar(AppTranslations.get('upload_success', const Locale('fr'), 'Upload réussi'));
+      debugPrint('🔄 Upload des images supplémentaires (${_selectedOtherImages.length})...');
+      urls.addAll(await _mediaService.uploadFiles(_selectedOtherImages));
+      debugPrint('✅ Images supplémentaires uploadées: $urls');
     } catch (e) {
-      setState(() => _isUploadingOtherImages = false);
-      _showSnackBar(AppTranslations.get('upload_error', const Locale('fr'), 'Erreur d\'upload'), isError: true);
+      debugPrint('❌ Erreur upload images supplémentaires: $e');
+      throw Exception('Erreur lors de l\'upload des images supplémentaires: $e');
     }
+    return urls;
   }
 
   void _removeMainImage() => setState(() {
         _selectedMainImage = null;
-        _uploadedMainImageUrl = null;
       });
 
   void _removeOtherImage(int index) => setState(() {
         _selectedOtherImages.removeAt(index);
-        if (index < _uploadedOtherImagesUrls.length) {
-          _uploadedOtherImagesUrls.removeAt(index);
-        }
       });
 
   // =========================================================
-  //  SUBMISSION (identique à l’original)
+  //  SOUMISSION CORRIGÉE
   // =========================================================
   Future<void> _handleCreateProperty() async {
     if (!_formKey.currentState!.validate()) return;
+    
     final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final accessToken = authProvider.accessToken;
     final user = authProvider.currentUser;
 
+    // Validations
     if (_selectedTown == null) {
-      _showSnackBar(AppTranslations.get('select_town_required', locale, 'Veuillez sélectionner une ville'), isError: true);
+      _showSnackBar('Veuillez sélectionner une ville', isError: true);
       return;
     }
     if (_selectedCategory == null) {
-      _showSnackBar(AppTranslations.get('select_category_required', locale, 'Veuillez sélectionner une catégorie'), isError: true);
+      _showSnackBar('Veuillez sélectionner une catégorie', isError: true);
       return;
     }
-    if (_uploadedMainImageUrl == null) {
-      _showSnackBar(AppTranslations.get('main_image_required', locale, 'Image principale requise'), isError: true);
+    if (_selectedMainImage == null) {
+      _showSnackBar('Image principale requise', isError: true);
       return;
     }
     if (accessToken == null || user == null || user.id.isEmpty) {
-      _showSnackBar(AppTranslations.get('login_required', locale, 'Vous devez être connecté'), isError: true);
+      _showSnackBar('Vous devez être connecté', isError: true);
       return;
     }
 
     setState(() => _isSubmitting = true);
 
+    String? mainImageUrl;
+    List<String> otherImagesUrls = [];
+
     try {
+      // ÉTAPE 1: Upload des images
+      debugPrint('🚀 Début de l\'upload des images...');
+      setState(() => _isUploadingImages = true);
+      
+      mainImageUrl = await _uploadMainImage();
+      otherImagesUrls = await _uploadOtherImages();
+      
+      setState(() => _isUploadingImages = false);
+
+      if (mainImageUrl == null) {
+        throw Exception('Échec de l\'upload de l\'image principale');
+      }
+
+      debugPrint('✅ Toutes les images uploadées avec succès');
+      debugPrint('📸 Image principale: $mainImageUrl');
+      debugPrint('🖼️ Images supplémentaires: $otherImagesUrls');
+
+      // ÉTAPE 2: Création de la propriété
       final propertyData = {
         "title": _titleController.text,
         "description": _descriptionController.text,
@@ -1960,8 +1674,8 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
         "bathrooms_nb": int.parse(_bathroomsController.text),
         "living_rooms_nb": int.parse(_livingRoomsController.text),
         "compartment_number": int.parse(_compartmentNumberController.text),
-        "main_image": _uploadedMainImageUrl,
-        "other_images": _uploadedOtherImagesUrls,
+        "main_image": mainImageUrl,
+        "other_images": otherImagesUrls,
         "location": [_addressController.text, _latitude?.toString() ?? "", _longitude?.toString() ?? ""],
         "owner_id": user.id,
         "town_id": _selectedTown!.id,
@@ -1979,16 +1693,25 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
         "status": _selectedStatus,
       };
 
+      debugPrint('🚀 Création de la propriété...');
       await _propertyService.createProperty(propertyData, accessToken);
 
       if (mounted) {
-        _showSnackBar(AppTranslations.get('property_created_success', locale, 'Propriété créée avec succès'));
+        _showSnackBar('Propriété créée avec succès');
         Navigator.of(context).pop();
       }
     } catch (e) {
-      _showSnackBar('${AppTranslations.get('creation_error', locale, 'Erreur lors de la création')}: ${e.toString()}', isError: true);
+      debugPrint('❌ Erreur lors de la création: $e');
+      if (mounted) {
+        _showSnackBar('Erreur lors de la création: ${e.toString()}', isError: true);
+      }
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+          _isUploadingImages = false;
+        });
+      }
     }
   }
 
@@ -2005,7 +1728,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
   }
 
   // =========================================================
-  //  WIDGETS (UI modernisée sans changer la logique)
+  //  WIDGETS
   // =========================================================
   Widget _buildSectionTitle(String title) {
     return Text(
@@ -2039,41 +1762,28 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
           child: Column(
             children: [
               if (_selectedMainImage != null) ...[
-                Stack(
-                  children: [
-                    Container(
-                      width: 200,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        image: DecorationImage(
-                          image: FileImage(_selectedMainImage!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                Container(
+                  width: 200,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: FileImage(_selectedMainImage!),
+                      fit: BoxFit.cover,
                     ),
-                    if (_isUploadingMainImage)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: CircularProgressIndicator(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 12),
-                if (_uploadedMainImageUrl != null)
-                  Text(
-                    AppTranslations.get('upload_success', locale, 'Upload réussi ✓'),
-                    style: TextStyle(
-                      color: AppThemes.getSuccessColor(context),
-                      fontWeight: FontWeight.bold,
-                    ),
+                if (_isUploadingImages)
+                  Column(
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppTranslations.get('uploading_image', locale, 'Upload en cours...'),
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ],
                   ),
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
@@ -2174,7 +1884,17 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                if (_isUploadingOtherImages) const CircularProgressIndicator(),
+                if (_isUploadingImages)
+                  Column(
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppTranslations.get('uploading_images', locale, 'Upload des images en cours...'),
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 12),
               ] else ...[
                 Icon(
@@ -2528,9 +2248,6 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
     };
   }
 
-  // =========================================================
-  //  DROPDOWNS (UI modernisée)
-  // =========================================================
   Widget _buildDropdown({
     required String label,
     required String value,
@@ -2569,7 +2286,6 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                // return AppTranslations.get('field_required', locale, 'Ce champ est requis');
                 return AppTranslations.get('field_required', Locale(locale), 'Ce champ est requis');
               }
               return null;
@@ -2577,6 +2293,40 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSubmitButton(Locale locale) {
+    return ElevatedButton(
+      onPressed: (_isSubmitting || _isUploadingImages) ? null : _handleCreateProperty,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _isSubmitting || _isUploadingImages
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  _isUploadingImages 
+                    ? AppTranslations.get('uploading_images', locale, 'Upload des images...')
+                    : AppTranslations.get('creating_property', locale, 'Création en cours...'),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            )
+          : Text(
+              AppTranslations.get('create_property', locale, 'Créer la propriété'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
     );
   }
 
@@ -2856,25 +2606,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                 const SizedBox(height: 32),
 
                 // Submit
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _handleCreateProperty,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Text(
-                          AppTranslations.get('create_property', locale, 'Créer la propriété'),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                ),
+                _buildSubmitButton(locale),
                 const SizedBox(height: 30),
               ],
             ),
