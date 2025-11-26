@@ -192,6 +192,12 @@ class AppTranslations {
       'electric_public_supply': 'Public Network',
       'electric_stand_alone': 'Standalone System',
       'electric_hybrid': 'Hybrid System',
+
+      'not_available': 'Not available',
+      'connected_public_supply': 'Public supply',
+      'stand_alone_system': 'Stand-alone system',
+      'stand_alone_system_with_mains_connection': 'Stand-alone system with mains connection',
+      'utilities': 'servicing',
       
       'status_free': 'Free',
       'status_busy': 'Busy',
@@ -429,6 +435,11 @@ class AppTranslations {
       'electric_public_supply': 'Réseau public',
       'electric_stand_alone': 'Système autonome',
       'electric_hybrid': 'Système hybride',
+      'not_available': 'Non disponible',
+      'connected_public_supply': 'Réseau public',
+      'stand_alone_system': 'Système autonome',
+      'stand_alone_system_with_mains_connection': 'Système autonome avec connexion réseau',
+      'utilities': 'viabilisation',
       
       'status_free': 'Libre',
       'status_busy': 'Occupé',

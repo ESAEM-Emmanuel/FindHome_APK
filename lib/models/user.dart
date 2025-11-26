@@ -498,6 +498,17 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    print('🔍 Structure User JSON: ${json.keys}');
+    print('🔍 Favoris reçus: ${json['favorites']}');
+    
+    if (json['favorites'] != null) {
+      print('🔍 Type des favoris: ${json['favorites'].runtimeType}');
+      if (json['favorites'] is List) {
+        for (var i = 0; i < (json['favorites'] as List).length; i++) {
+          print('   Favori $i: ${json['favorites'][i]}');
+        }
+      }
+    }
     return User(
       id: json['id']?.toString() ?? '',
       refnumber: json['refnumber']?.toString(),
@@ -725,10 +736,12 @@ class Favorite {
   final String? property_id;
   final User? owner;
   final property_model.Property? property; // Utilise Property du fichier property_model.dart
+  final bool? active;
 
   // Getters camelCase
   String? get ownerId => owner_id;
   String? get propertyId => property_id;
+  bool? get isActive => active; 
 
   Favorite({
     required this.id,
@@ -736,15 +749,18 @@ class Favorite {
     this.property_id,
     this.owner,
     this.property,
+    this.active,
   });
 
   factory Favorite.fromJson(Map<String, dynamic> json) {
+    print('🔍 Parsing Favorite JSON: $json');
     return Favorite(
       id: json['id']?.toString() ?? '',
       owner_id: json['owner_id']?.toString(),
       property_id: json['property_id']?.toString(),
       owner: json['owner'] != null ? User.fromJson(json['owner']) : null,
       property: json['property'] != null ? property_model.Property.fromJson(json['property']) : null,
+      active: _parseBool(json['active']),
     );
   }
 
@@ -755,6 +771,7 @@ class Favorite {
       'property_id': property_id,
       'owner': owner?.toJson(),
       'property': property?.toJson(),
+      'active': active,
     };
   }
 }

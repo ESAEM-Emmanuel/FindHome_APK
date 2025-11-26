@@ -448,4 +448,31 @@ class AuthService {
       throw Exception('Erreur lors du changement de mot de passe: $errorMessage');
     }
   }
+
+  /// Récupère les données utilisateur avec ses favoris via /me
+  Future<User> getCurrentUserWithFavorites() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token');
+
+    if (accessToken == null) {
+      throw Exception('Non authentifié');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/me'),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      print('🔄 Données utilisateur récupérées avec favoris');
+      print('❤️ Nombre de favoris: ${data['favorites']?.length ?? 0}');
+      return User.fromJson(data);
+    } else {
+      throw Exception('Erreur lors de la récupération du profil: ${response.statusCode}');
+    }
+  }
 }

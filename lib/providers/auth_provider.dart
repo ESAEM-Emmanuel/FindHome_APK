@@ -154,9 +154,11 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../models/user.dart';
+import '../services/property_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
+  final PropertyService _propertyService = PropertyService();
   
   // États d'authentification
   bool _isLoggedIn = false;
@@ -188,8 +190,13 @@ class AuthProvider with ChangeNotifier {
     
     final prefs = await SharedPreferences.getInstance();
     _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    
+    // Charger les données utilisateur si connecté
+    if (_isLoggedIn && _accessToken != null) {
+      await fetchUserProfile();
+    }
+    
     _isLoading = false;
-
     notifyListeners();
   }
 
@@ -299,19 +306,90 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // --- Vérifier si une propriété est en favoris actif ---
+  bool isPropertyFavorite(String propertyId) {
+    if (_currentUser == null || _currentUser!.favorites == null) {
+      return false;
+    }
+
+    // Vérifier les favoris avec active = true ou null (considéré comme true par défaut)
+    return _currentUser!.favorites!.any((favorite) {
+      // Si active est null, on considère que c'est true (comportement par défaut)
+      final isActive = favorite.active ?? true;
+      final hasProperty = favorite.property != null;
+      final isMatchingProperty = hasProperty && favorite.property!.id == propertyId;
+      
+      if (isMatchingProperty) {
+        print('🔍 Favori trouvé: ${favorite.id}, Active: ${favorite.active} (considéré comme: $isActive)');
+      }
+      
+      return isMatchingProperty && isActive;
+    });
+  }
+
+  // --- Ajouter/retirer un favori ---
+  Future<void> toggleFavorite(String propertyId) async {
+    if (_accessToken == null || _currentUser == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+
+    try {
+      // Sauvegarder l'état précédent pour le rollback si nécessaire
+      final wasFavorite = isPropertyFavorite(propertyId);
+      
+      // Appel API
+      await _propertyService.toggleFavorite(propertyId, _accessToken!);
+      
+      // Recharger les données utilisateur pour synchroniser
+      await fetchUserProfile();
+      
+    } catch (e) {
+      // En cas d'erreur, recharger pour s'assurer de l'état correct
+      await fetchUserProfile();
+      throw Exception('Erreur lors de la modification des favoris: $e');
+    }
+  }
+
+  // --- Récupération des données utilisateur détaillées ---
   // --- Récupération des données utilisateur détaillées ---
   Future<void> fetchUserProfile() async {
-    if (_currentUser == null) return;
+    if (_accessToken == null) {
+      return;
+    }
 
     try {
       _isLoading = true;
       notifyListeners();
 
-      final userData = await _authService.getUserProfile(_currentUser!.id);
+      final userData = await _authService.getCurrentUserWithFavorites();
       _currentUser = userData;
+      
+      // DEBUG DÉTAILLÉ
+      print('🔄 Données utilisateur chargées');
+      print('👤 Utilisateur: ${_currentUser?.username}');
+      print('❤️ Nombre de favoris: ${_currentUser?.favorites?.length ?? 0}');
+      
+      if (_currentUser?.favorites != null) {
+        for (var fav in _currentUser!.favorites!) {
+          print('   - Favori: ${fav.id}');
+          print('     Active: ${fav.active} (type: ${fav.active.runtimeType})');
+          print('     Property ID: ${fav.property?.id}');
+          print('     Property Title: ${fav.property?.title}');
+        }
+      }
+      
+      // Test de la méthode isPropertyFavorite
+      if (_currentUser?.favorites != null && _currentUser!.favorites!.isNotEmpty) {
+        final testPropertyId = _currentUser!.favorites!.first.property?.id;
+        if (testPropertyId != null) {
+          final testResult = isPropertyFavorite(testPropertyId);
+          print('🧪 Test isPropertyFavorite($testPropertyId): $testResult');
+        }
+      }
       
       _isLoading = false;
       notifyListeners();
+      
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();

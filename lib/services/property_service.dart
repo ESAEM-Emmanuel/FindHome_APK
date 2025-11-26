@@ -175,7 +175,7 @@
 
 //   /// Ajoute/retire une propriété des favoris
 //   Future<void> toggleFavorite(String propertyId, String accessToken) async {
-//     final uri = Uri.parse('$baseUrl/favorites/toggle');
+//     final uri = Uri.parse('$baseUrl/favorites');
 //     final body = json.encode({'property_id': propertyId});
 
 //     await _makeRequest(
@@ -379,6 +379,47 @@
 //     }
 //   }
 
+//   /// NOUVELLE MÉTHODE : Récupère TOUTES les propriétés avec des filtres avancés (sans pagination)
+//   Future<PropertyListResponse> getAllPropertiesWithFilters(Map<String, dynamic> filters) async {
+//     try {
+//       // Construire les paramètres de requête avec get_all=true et limit=-1
+//       final queryParams = <String, String>{};
+      
+//       // Ajouter tous les filtres non vides
+//       filters.forEach((key, value) {
+//         if (value != null && value.toString().isNotEmpty) {
+//           queryParams[key] = value.toString();
+//         }
+//       });
+
+//       // FORCER la récupération de tous les éléments
+//       queryParams['get_all'] = 'true';
+//       // queryParams['limit'] = '-1';
+//       queryParams['page'] = '1'; // Toujours page 1 quand on veut tout
+
+//       // Paramètres par défaut
+//       if (!queryParams.containsKey('order')) {
+//         queryParams['order'] = 'asc';
+//       }
+//       if (!queryParams.containsKey('active')) {
+//         queryParams['active'] = 'true'; // Toujours les propriétés actives
+//       }
+
+//       final uri = Uri.parse('$baseUrl/properties/').replace(queryParameters: queryParams);
+
+//       final data = await _makeRequest(() => http.get(uri, headers: _defaultHeaders));
+//       return PropertyListResponse.fromJson(data);
+      
+//     } on FormatException {
+//       throw Exception('Erreur de format des données reçues.');
+//     } on http.ClientException {
+//       throw Exception('Erreur de connexion. Vérifiez votre connexion internet.');
+//     } catch (e) {
+//       if (e is Exception) rethrow;
+//       throw Exception('Erreur inattendue: $e');
+//     }
+//   }
+
 //   /// NOUVELLE MÉTHODE : Récupère les villes disponibles
 //   Future<List<dynamic>> getTowns() async {
 //     final uri = Uri.parse('$baseUrl/towns/');
@@ -438,6 +479,7 @@
 // lib/services/property_service.dart
 
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/property_model.dart';
 import '../constants/api_constants.dart';
@@ -599,20 +641,10 @@ class PropertyService {
     return Property.fromJson(data);
   }
 
-  /// Vérifie si une propriété est en favoris
-  Future<bool> isPropertyFavorite(String propertyId, String accessToken) async {
-    final uri = Uri.parse('$baseUrl/favorites/check/$propertyId');
-
-    final data = await _makeRequest(
-      () => http.get(uri, headers: _jsonHeaders(accessToken)),
-    );
-    
-    return data['is_favorite'] as bool? ?? false;
-  }
 
   /// Ajoute/retire une propriété des favoris
   Future<void> toggleFavorite(String propertyId, String accessToken) async {
-    final uri = Uri.parse('$baseUrl/favorites/toggle');
+    final uri = Uri.parse('$baseUrl/favorites/');
     final body = json.encode({'property_id': propertyId});
 
     await _makeRequest(
@@ -777,7 +809,7 @@ class PropertyService {
     return data as Map<String, dynamic>;
   }
 
-  /// NOUVELLE MÉTHODE : Récupère les propriétés avec des filtres avancés
+  /// Récupère les propriétés avec des filtres avancés
   Future<PropertyListResponse> getPropertiesWithFilters(Map<String, dynamic> filters) async {
     try {
       // Construire les paramètres de requête
@@ -816,7 +848,7 @@ class PropertyService {
     }
   }
 
-  /// NOUVELLE MÉTHODE : Récupère TOUTES les propriétés avec des filtres avancés (sans pagination)
+  /// Récupère TOUTES les propriétés avec des filtres avancés (sans pagination)
   Future<PropertyListResponse> getAllPropertiesWithFilters(Map<String, dynamic> filters) async {
     try {
       // Construire les paramètres de requête avec get_all=true et limit=-1
@@ -831,7 +863,6 @@ class PropertyService {
 
       // FORCER la récupération de tous les éléments
       queryParams['get_all'] = 'true';
-      // queryParams['limit'] = '-1';
       queryParams['page'] = '1'; // Toujours page 1 quand on veut tout
 
       // Paramètres par défaut
@@ -856,8 +887,9 @@ class PropertyService {
       throw Exception('Erreur inattendue: $e');
     }
   }
+  
 
-  /// NOUVELLE MÉTHODE : Récupère les villes disponibles
+  /// Récupère les villes disponibles
   Future<List<dynamic>> getTowns() async {
     final uri = Uri.parse('$baseUrl/towns/');
 
@@ -865,7 +897,7 @@ class PropertyService {
     return data['records'] as List<dynamic>;
   }
 
-  /// NOUVELLE MÉTHODE : Récupère les catégories disponibles
+  /// Récupère les catégories disponibles
   Future<List<dynamic>> getCategories() async {
     final uri = Uri.parse('$baseUrl/categories/');
 
@@ -873,7 +905,59 @@ class PropertyService {
     return data['records'] as List<dynamic>;
   }
 
-  /// NOUVELLE MÉTHODE : Réinitialise les filtres
+  /// Récupère les propriétés favorites de l'utilisateur avec statut actif
+  Future<List<Property>> getUserFavorites(String accessToken, {String? ownerId}) async {
+    final queryParams = <String, String>{
+      'order': 'asc',
+      'sort_by': 'created_at',
+      'page': '1',
+      'get_all': 'true',
+      'active': 'true', // Seulement les favoris actifs
+    };
+
+    if (ownerId != null) {
+      queryParams['owner_id'] = ownerId;
+    }
+
+    final uri = Uri.parse('$baseUrl/favorites/').replace(queryParameters: queryParams);
+
+    final data = await _makeRequest(
+      () => http.get(uri, headers: _jsonHeaders(accessToken)),
+    );
+    
+    // Extraire les propriétés des favoris
+    final records = data['records'] as List<dynamic>;
+    return records.map((fav) => Property.fromJson(fav['property'])).toList();
+  }
+
+  /// Vérifie si une propriété est en favoris (active)
+  Future<bool> isPropertyFavorite(String propertyId, String accessToken) async {
+    try {
+      final queryParams = <String, String>{
+        'order': 'asc',
+        'sort_by': 'created_at',
+        'page': '1',
+        'get_all': 'true',
+        'active': 'true',
+        'property_id': propertyId, // Filtrer par propriété spécifique
+      };
+
+      final uri = Uri.parse('$baseUrl/favorites/').replace(queryParameters: queryParams);
+
+      final data = await _makeRequest(
+        () => http.get(uri, headers: _jsonHeaders(accessToken)),
+      );
+      
+      final records = data['records'] as List<dynamic>;
+      // Si on a au moins un favori actif pour cette propriété
+      return records.isNotEmpty;
+    } catch (e) {
+      debugPrint("Erreur lors de la vérification des favoris: $e");
+      return false;
+    }
+  }
+
+  /// Réinitialise les filtres
   Map<String, dynamic> getDefaultFilters() {
     return {
       'search': '',

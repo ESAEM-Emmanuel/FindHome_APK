@@ -750,6 +750,18 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+    Future<void> loadUserData() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    if (authProvider.isLoggedIn && authProvider.currentUser != null) {
+      try {
+        await authProvider.fetchUserProfile();
+      } catch (e) {
+        print("Erreur lors du chargement des données utilisateur: $e");
+      }
+    }
+  }
+
   void _showLogoutConfirmation(BuildContext context, Locale locale) {
     showDialog(
       context: context,

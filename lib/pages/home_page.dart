@@ -34,6 +34,7 @@
 //   int _currentPage = 1;
 //   final int _limit = 10;
 //   String _currentSearchQuery = '';
+//   String? _togglingFavoriteId;
 
 //   final Map<String, dynamic> _filters = {
 //     'search': '',
@@ -143,19 +144,21 @@
 //     }
 //   }
 
-//   void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters) {
+//   void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
 //     setStateBS(() {
 //       _selectedTown = town;
 //       _showTownDropdown = false;
 //       localFilters['town_id'] = town.id;
+//       townController.text = town.name;
 //     });
 //   }
 
-//   void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters) {
+//   void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
 //     setStateBS(() {
 //       _selectedTown = null;
 //       _showTownDropdown = false;
 //       localFilters['town_id'] = '';
+//       townController.clear();
 //     });
 //   }
 
@@ -191,19 +194,21 @@
 //     }
 //   }
 
-//   void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters) {
+//   void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
 //     setStateBS(() {
 //       _selectedCategory = category;
 //       _showCategoryDropdown = false;
 //       localFilters['category_property_id'] = category.id;
+//       categoryController.text = category.name;
 //     });
 //   }
 
-//   void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters) {
+//   void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
 //     setStateBS(() {
 //       _selectedCategory = null;
 //       _showCategoryDropdown = false;
 //       localFilters['category_property_id'] = '';
+//       categoryController.clear();
 //     });
 //   }
 
@@ -365,9 +370,6 @@
 //     );
 //   }
 
-//   // =========================================================================
-//   //  BOTTOM SHEET AMÉLIORÉ AVEC CORRECTION DES FILTRES
-//   // =========================================================================
 //   void _showFilterBottomSheet(BuildContext context, Locale locale) {
 //     final Map<String, dynamic> localFilters = Map.from(_filters);
 
@@ -495,8 +497,8 @@
 //                             townSearchController,
 //                             localFilters,
 //                             (query) => _onTownSearchChanged(query, setStateBS),
-//                             () => _clearTownSelection(setStateBS, localFilters),
-//                             (town) => _selectTown(town, setStateBS, localFilters)
+//                             () => _clearTownSelection(setStateBS, localFilters, townSearchController),
+//                             (town) => _selectTown(town, setStateBS, localFilters, townSearchController)
 //                           ),
                           
 //                           _buildCategoryFilterSection(
@@ -505,8 +507,8 @@
 //                             categorySearchController,
 //                             localFilters,
 //                             (query) => _onCategorySearchChanged(query, setStateBS),
-//                             () => _clearCategorySelection(setStateBS, localFilters),
-//                             (category) => _selectCategory(category, setStateBS, localFilters)
+//                             () => _clearCategorySelection(setStateBS, localFilters, categorySearchController),
+//                             (category) => _selectCategory(category, setStateBS, localFilters, categorySearchController)
 //                           ),
                           
 //                           _buildStatusFilterChips(locale, localFilters, setStateBS),
@@ -1006,152 +1008,229 @@
 //     final primary = Theme.of(context).colorScheme.primary;
 //     final accent = Theme.of(context).colorScheme.secondary;
 
-//     return GestureDetector(
-//       onTap: () => Navigator.of(context)
-//           .pushNamed('/property-detail', arguments: {'id': property.id}),
-//       child: Container(
-//         margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-//         clipBehavior: Clip.antiAlias,
-//         decoration: BoxDecoration(
-//           color: Theme.of(context).cardColor,
-//           borderRadius: BorderRadius.circular(20),
-//           boxShadow: [
-//             BoxShadow(
-//               color: Colors.black.withOpacity(0.05),
-//               blurRadius: 12,
-//               offset: const Offset(0, 6),
-//             ),
-//           ],
-//         ),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Stack(
-//               children: [
-//                 ClipRRect(
-//                   borderRadius:
-//                       const BorderRadius.vertical(top: Radius.circular(20)),
-//                   child: Image.network(
-//                     property.mainImage.startsWith('http')
-//                         ? property.mainImage
-//                         : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible ',
-//                     height: 200,
-//                     width: double.infinity,
-//                     fit: BoxFit.cover,
-//                     errorBuilder: (_, __, ___) => Container(
-//                       height: 200,
-//                       color: Colors.grey.shade300,
-//                       alignment: Alignment.center,
-//                       child:
-//                           const Icon(Icons.image_not_supported, color: Colors.grey),
-//                     ),
-//                   ),
+//     return Consumer<AuthProvider>(
+//       builder: (context, authProvider, child) {
+//         // Vérification CORRIGÉE : seulement si active = true
+//         final isFavorite = authProvider.isPropertyFavorite(property.id);
+        
+//         return GestureDetector(
+//           onTap: () => Navigator.of(context)
+//               .pushNamed('/property-detail', arguments: {'id': property.id}),
+//           child: Container(
+//             margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+//             clipBehavior: Clip.antiAlias,
+//             decoration: BoxDecoration(
+//               color: Theme.of(context).cardColor,
+//               borderRadius: BorderRadius.circular(20),
+//               boxShadow: [
+//                 BoxShadow(
+//                   color: Colors.black.withOpacity(0.05),
+//                   blurRadius: 12,
+//                   offset: const Offset(0, 6),
 //                 ),
-//                 if (property.certified)
-//                   Positioned(
-//                     top: 12,
-//                     right: 12,
-//                     child: Container(
-//                       padding: const EdgeInsets.symmetric(
-//                           horizontal: 10, vertical: 6),
-//                       decoration: BoxDecoration(
-//                         color: AppThemes.getCertifiedColor(context),
-//                         borderRadius: BorderRadius.circular(12),
+//               ],
+//             ),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Stack(
+//                   children: [
+//                     ClipRRect(
+//                       borderRadius:
+//                           const BorderRadius.vertical(top: Radius.circular(20)),
+//                       child: Image.network(
+//                         property.mainImage.startsWith('http')
+//                             ? property.mainImage
+//                             : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible ',
+//                         height: 200,
+//                         width: double.infinity,
+//                         fit: BoxFit.cover,
+//                         errorBuilder: (_, __, ___) => Container(
+//                           height: 200,
+//                           color: Colors.grey.shade300,
+//                           alignment: Alignment.center,
+//                           child:
+//                               const Icon(Icons.image_not_supported, color: Colors.grey),
+//                         ),
 //                       ),
-//                       child: const Row(
-//                         mainAxisSize: MainAxisSize.min,
+//                     ),
+                    
+//                     if (property.certified)
+//                       Positioned(
+//                         top: 12,
+//                         right: 12,
+//                         child: Container(
+//                           padding: const EdgeInsets.symmetric(
+//                               horizontal: 10, vertical: 6),
+//                           decoration: BoxDecoration(
+//                             color: AppThemes.getCertifiedColor(context),
+//                             borderRadius: BorderRadius.circular(12),
+//                           ),
+//                           child: const Row(
+//                             mainAxisSize: MainAxisSize.min,
+//                             children: [
+//                               Icon(Icons.verified, size: 14, color: Colors.white),
+//                               SizedBox(width: 4),
+//                               Text('Certifié',
+//                                   style:
+//                                       TextStyle(color: Colors.white, fontSize: 11)),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+                    
+//                     Positioned(
+//                       top: 12,
+//                       left: 12,
+//                       child: Container(
+//                         padding: const EdgeInsets.symmetric(
+//                             horizontal: 10, vertical: 6),
+//                         decoration: BoxDecoration(
+//                           color: _getStatusColor(context, property.status),
+//                           borderRadius: BorderRadius.circular(12),
+//                         ),
+//                         child: Row(
+//                           mainAxisSize: MainAxisSize.min,
+//                           children: [
+//                             Icon(_getStatusIcon(property.status),
+//                                 size: 14, color: Colors.white),
+//                             const SizedBox(width: 4),
+//                             Text(_getStatusTranslation(locale, property.status),
+//                                 style: const TextStyle(
+//                                     color: Colors.white,
+//                                     fontSize: 11,
+//                                     fontWeight: FontWeight.w600)),
+//                           ],
+//                         ),
+//                       ),
+//                     ),
+                    
+//                     // ❤️ BOUTON FAVORI - SEULEMENT ROUGE SI active = true
+//                     Positioned(
+//                       top: 12,
+//                       right: property.certified ? 70 : 12,
+//                       child: GestureDetector(
+//                         onTap: () async {
+//                           if (!authProvider.isLoggedIn || _togglingFavoriteId == property.id) {
+//                             if (!authProvider.isLoggedIn) {
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 SnackBar(
+//                                   content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
+//                                   backgroundColor: AppThemes.getWarningColor(context),
+//                                 ),
+//                               );
+//                             }
+//                             return;
+//                           }
+                          
+//                           setState(() => _togglingFavoriteId = property.id);
+                          
+//                           try {
+//                             await authProvider.toggleFavorite(property.id);
+//                           } catch (e) {
+//                             ScaffoldMessenger.of(context).showSnackBar(
+//                               SnackBar(
+//                                 content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
+//                                 backgroundColor: AppThemes.getErrorColor(context),
+//                               ),
+//                             );
+//                           } finally {
+//                             if (mounted) {
+//                               setState(() => _togglingFavoriteId = null);
+//                             }
+//                           }
+//                         },
+//                         child: Container(
+//                           padding: const EdgeInsets.all(6),
+//                           decoration: BoxDecoration(
+//                             color: Colors.white.withOpacity(0.9),
+//                             borderRadius: BorderRadius.circular(20),
+//                             boxShadow: [
+//                               BoxShadow(
+//                                 color: Colors.black.withOpacity(0.1),
+//                                 blurRadius: 4,
+//                                 offset: const Offset(0, 2),
+//                               ),
+//                             ],
+//                           ),
+//                           child: _togglingFavoriteId == property.id
+//                               ? SizedBox(
+//                                   width: 20,
+//                                   height: 20,
+//                                   child: CircularProgressIndicator(
+//                                     strokeWidth: 2,
+//                                     valueColor: AlwaysStoppedAnimation<Color>(
+//                                       isFavorite ? Colors.red : Colors.grey,
+//                                     ),
+//                                   ),
+//                                 )
+//                               : Icon(
+//                                   isFavorite ? Icons.favorite : Icons.favorite_border,
+//                                   color: isFavorite ? Colors.red : Colors.grey,
+//                                   size: 20,
+//                                 ),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//                 Padding(
+//                   padding: const EdgeInsets.all(16),
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Row(
 //                         children: [
-//                           Icon(Icons.verified, size: 14, color: Colors.white),
-//                           SizedBox(width: 4),
-//                           Text('Certifié',
-//                               style:
-//                                   TextStyle(color: Colors.white, fontSize: 11)),
+//                           Expanded(
+//                             child: Text(
+//                               '${property.category.name.toUpperCase()}  •  ${property.town.name}',
+//                               style: TextStyle(
+//                                   color: accent,
+//                                   fontSize: 12,
+//                                   fontWeight: FontWeight.w600),
+//                             ),
+//                           ),
 //                         ],
 //                       ),
-//                     ),
-//                   ),
-//                 Positioned(
-//                   top: 12,
-//                   left: 12,
-//                   child: Container(
-//                     padding: const EdgeInsets.symmetric(
-//                         horizontal: 10, vertical: 6),
-//                     decoration: BoxDecoration(
-//                       color: _getStatusColor(context, property.status),
-//                       borderRadius: BorderRadius.circular(12),
-//                     ),
-//                     child: Row(
-//                       mainAxisSize: MainAxisSize.min,
-//                       children: [
-//                         Icon(_getStatusIcon(property.status),
-//                             size: 14, color: Colors.white),
-//                         const SizedBox(width: 4),
-//                         Text(_getStatusTranslation(locale, property.status),
-//                             style: const TextStyle(
-//                                 color: Colors.white,
-//                                 fontSize: 11,
-//                                 fontWeight: FontWeight.w600)),
-//                       ],
-//                     ),
+//                       const SizedBox(height: 6),
+//                       Text(property.title,
+//                           maxLines: 2,
+//                           overflow: TextOverflow.ellipsis,
+//                           style: const TextStyle(
+//                               fontSize: 18, fontWeight: FontWeight.w700)),
+//                       const SizedBox(height: 10),
+//                       Row(
+//                         children: [
+//                           _pill(Icons.square_foot, '${property.area} m²'),
+//                           const SizedBox(width: 8),
+//                           _pill(Icons.bed, '${property.roomsNb} pcs'),
+//                           const SizedBox(width: 8),
+//                           _pill(Icons.bathtub, '${property.bathroomsNb} bains'),
+//                         ],
+//                       ),
+//                       const SizedBox(height: 12),
+//                       Row(
+//                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                         children: [
+//                           Text(
+//                             '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
+//                             style: TextStyle(
+//                                 fontSize: 20,
+//                                 fontWeight: FontWeight.w900,
+//                                 color: primary),
+//                           ),
+//                           Icon(Icons.arrow_forward_ios,
+//                               size: 16, color: accent.withOpacity(.6)),
+//                         ],
+//                       ),
+//                     ],
 //                   ),
 //                 ),
 //               ],
 //             ),
-//             Padding(
-//               padding: const EdgeInsets.all(16),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Row(
-//                     children: [
-//                       Expanded(
-//                         child: Text(
-//                           '${property.category.name.toUpperCase()}  •  ${property.town.name}',
-//                           style: TextStyle(
-//                               color: accent,
-//                               fontSize: 12,
-//                               fontWeight: FontWeight.w600),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                   const SizedBox(height: 6),
-//                   Text(property.title,
-//                       maxLines: 2,
-//                       overflow: TextOverflow.ellipsis,
-//                       style: const TextStyle(
-//                           fontSize: 18, fontWeight: FontWeight.w700)),
-//                   const SizedBox(height: 10),
-//                   Row(
-//                     children: [
-//                       _pill(Icons.square_foot, '${property.area} m²'),
-//                       const SizedBox(width: 8),
-//                       _pill(Icons.bed, '${property.roomsNb} pcs'),
-//                       const SizedBox(width: 8),
-//                       _pill(Icons.bathtub, '${property.bathroomsNb} bains'),
-//                     ],
-//                   ),
-//                   const SizedBox(height: 12),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(
-//                         '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
-//                         style: TextStyle(
-//                             fontSize: 20,
-//                             fontWeight: FontWeight.w900,
-//                             color: primary),
-//                       ),
-//                       Icon(Icons.arrow_forward_ios,
-//                           size: 16, color: accent.withOpacity(.6)),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
+//           ),
+//         );
+//       },
 //     );
 //   }
 
@@ -1269,6 +1348,7 @@ class _HomePageState extends State<HomePage> {
   int _currentPage = 1;
   final int _limit = 10;
   String _currentSearchQuery = '';
+  String? _togglingFavoriteId;
 
   final Map<String, dynamic> _filters = {
     'search': '',
@@ -1383,7 +1463,7 @@ class _HomePageState extends State<HomePage> {
       _selectedTown = town;
       _showTownDropdown = false;
       localFilters['town_id'] = town.id;
-      townController.text = town.name; // CORRECTION : Mettre à jour le contrôleur
+      townController.text = town.name;
     });
   }
 
@@ -1392,7 +1472,7 @@ class _HomePageState extends State<HomePage> {
       _selectedTown = null;
       _showTownDropdown = false;
       localFilters['town_id'] = '';
-      townController.clear(); // CORRECTION : Vider le contrôleur
+      townController.clear();
     });
   }
 
@@ -1433,7 +1513,7 @@ class _HomePageState extends State<HomePage> {
       _selectedCategory = category;
       _showCategoryDropdown = false;
       localFilters['category_property_id'] = category.id;
-      categoryController.text = category.name; // CORRECTION : Mettre à jour le contrôleur
+      categoryController.text = category.name;
     });
   }
 
@@ -1442,7 +1522,7 @@ class _HomePageState extends State<HomePage> {
       _selectedCategory = null;
       _showCategoryDropdown = false;
       localFilters['category_property_id'] = '';
-      categoryController.clear(); // CORRECTION : Vider le contrôleur
+      categoryController.clear();
     });
   }
 
@@ -1551,6 +1631,22 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Méthode pour vérifier les permissions de modification
+  bool _canEditProperty(Property property) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) {
+      return false;
+    }
+
+    final isOwner = currentUser.id == property.ownerId;
+    final isAdmin = currentUser.role == 'admin';
+    final isStaff = currentUser.isStaff == true;
+
+    return isOwner || isAdmin || isStaff;
+  }
+
   // ---------- UI ----------
 
   Widget _buildSearchBar(BuildContext context, Locale locale) {
@@ -1604,9 +1700,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // =========================================================================
-  //  BOTTOM SHEET AMÉLIORÉ AVEC CORRECTION DES FILTRES
-  // =========================================================================
   void _showFilterBottomSheet(BuildContext context, Locale locale) {
     final Map<String, dynamic> localFilters = Map.from(_filters);
 
@@ -1621,7 +1714,6 @@ class _HomePageState extends State<HomePage> {
     final bathMinCtrl = TextEditingController(text: localFilters['bathrooms_nb']?.toString() ?? '');
     final bathMaxCtrl = TextEditingController(text: localFilters['bathrooms_nb_bis']?.toString() ?? '');
 
-    // CORRECTION : Initialiser les contrôleurs avec les valeurs actuelles
     if (_selectedTown != null) {
       townSearchController.text = _selectedTown!.name;
     }
@@ -2246,152 +2338,260 @@ class _HomePageState extends State<HomePage> {
     final primary = Theme.of(context).colorScheme.primary;
     final accent = Theme.of(context).colorScheme.secondary;
 
-    return GestureDetector(
-      onTap: () => Navigator.of(context)
-          .pushNamed('/property-detail', arguments: {'id': property.id}),
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.network(
-                    property.mainImage.startsWith('http')
-                        ? property.mainImage
-                        : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible ',
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 200,
-                      color: Colors.grey.shade300,
-                      alignment: Alignment.center,
-                      child:
-                          const Icon(Icons.image_not_supported, color: Colors.grey),
-                    ),
-                  ),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // Vérification CORRIGÉE : seulement si active = true
+        final isFavorite = authProvider.isPropertyFavorite(property.id);
+        
+        return GestureDetector(
+          onTap: () => Navigator.of(context)
+              .pushNamed('/property-detail', arguments: {'id': property.id}),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
                 ),
-                if (property.certified)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppThemes.getCertifiedColor(context),
-                        borderRadius: BorderRadius.circular(12),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(20)),
+                      child: Image.network(
+                        property.mainImage.startsWith('http')
+                            ? property.mainImage
+                            : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible ',
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 200,
+                          color: Colors.grey.shade300,
+                          alignment: Alignment.center,
+                          child:
+                              const Icon(Icons.image_not_supported, color: Colors.grey),
+                        ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                    ),
+                    
+                    // === DISPOSITION AMÉLIORÉE DES BADGES ===
+                    
+                    // Badge Statut (en haut à gauche)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(context, property.status),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(_getStatusIcon(property.status), size: 14, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(_getStatusTranslation(locale, property.status),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    // === CONTENEUR DROITE POUR TOUS LES BADGES ===
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Icon(Icons.verified, size: 14, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text('Certifié',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 11)),
+                          // Badge Certifié (si applicable)
+                          if (property.certified) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppThemes.getCertifiedColor(context),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.verified, size: 14, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text('Certifié',
+                                      style: TextStyle(color: Colors.white, fontSize: 11)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8), // Espace entre les badges
+                          ],
+                          
+                          // Badge Propriétaire (si applicable)
+                          if (_canEditProperty(property)) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.person, size: 14, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Propriétaire',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8), // Espace entre les badges
+                          ],
+                          
+                          // ❤️ BOUTON FAVORI - TOUJOURS EN DERNIER
+                          GestureDetector(
+                            onTap: () async {
+                              if (!authProvider.isLoggedIn || _togglingFavoriteId == property.id) {
+                                if (!authProvider.isLoggedIn) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
+                                      backgroundColor: AppThemes.getWarningColor(context),
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              
+                              setState(() => _togglingFavoriteId = property.id);
+                              
+                              try {
+                                await authProvider.toggleFavorite(property.id);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
+                                    backgroundColor: AppThemes.getErrorColor(context),
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _togglingFavoriteId = null);
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.95),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: _togglingFavoriteId == property.id
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          isFavorite ? Colors.red : Colors.grey,
+                                        ),
+                                      ),
+                                    )
+                                  : Icon(
+                                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      color: isFavorite ? Colors.red : Colors.grey,
+                                      size: 18,
+                                    ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(context, property.status),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(_getStatusIcon(property.status),
-                            size: 14, color: Colors.white),
-                        const SizedBox(width: 4),
-                        Text(_getStatusTranslation(locale, property.status),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${property.category.name.toUpperCase()}  •  ${property.town.name}',
+                              style: TextStyle(
+                                  color: accent,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(property.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _pill(Icons.square_foot, '${property.area} m²'),
+                          const SizedBox(width: 8),
+                          _pill(Icons.bed, '${property.roomsNb} pcs'),
+                          const SizedBox(width: 8),
+                          _pill(Icons.bathtub, '${property.bathroomsNb} bains'),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: primary),
+                          ),
+                          Icon(Icons.arrow_forward_ios,
+                              size: 16, color: accent.withOpacity(.6)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${property.category.name.toUpperCase()}  •  ${property.town.name}',
-                          style: TextStyle(
-                              color: accent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(property.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _pill(Icons.square_foot, '${property.area} m²'),
-                      const SizedBox(width: 8),
-                      _pill(Icons.bed, '${property.roomsNb} pcs'),
-                      const SizedBox(width: 8),
-                      _pill(Icons.bathtub, '${property.bathroomsNb} bains'),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: primary),
-                      ),
-                      Icon(Icons.arrow_forward_ios,
-                          size: 16, color: accent.withOpacity(.6)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
