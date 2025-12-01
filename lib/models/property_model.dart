@@ -78,6 +78,9 @@
 //   final String electricalConnection;
 //   final int compartmentNumber;
 
+//   // NOUVEAU : Champ pour la vérification de demande
+//   final bool hasSendVerifiedRequest;
+
 //   Property({
 //     required this.id,
 //     required this.title,
@@ -110,6 +113,8 @@
 //     required this.waterSupply,
 //     required this.electricalConnection,
 //     required this.compartmentNumber,
+//     // NOUVEAU : Vérification de demande
+//     required this.hasSendVerifiedRequest,
 //   });
 
 //   factory Property.fromJson(Map<String, dynamic> json) {
@@ -170,6 +175,9 @@
 //     final waterSupply = json['water_supply'] as String? ?? 'not_available';
 //     final electricalConnection = json['electrical_connection'] as String? ?? 'not_available';
 
+//     // 6. NOUVEAU : Gestion de la vérification de demande
+//     final hasSendVerifiedRequest = json['has_send_verified_request'] as bool? ?? false;
+
 //     return Property(
 //       id: json['id'] as String,
 //       title: json['title'] as String,
@@ -209,6 +217,9 @@
 //       waterSupply: waterSupply,
 //       electricalConnection: electricalConnection,
 //       compartmentNumber: compartmentNumber,
+      
+//       // NOUVEAU : Vérification de demande
+//       hasSendVerifiedRequest: hasSendVerifiedRequest,
 //     );
 //   }
 
@@ -243,6 +254,7 @@
 //       'water_supply': waterSupply,
 //       'electrical_connection': electricalConnection,
 //       'compartment_number': compartmentNumber,
+//       'has_send_verified_request': hasSendVerifiedRequest,
 //     };
 //   }
 
@@ -280,6 +292,7 @@
 //     String? waterSupply,
 //     String? electricalConnection,
 //     int? compartmentNumber,
+//     bool? hasSendVerifiedRequest,
 //   }) {
 //     return Property(
 //       id: id ?? this.id,
@@ -311,6 +324,7 @@
 //       waterSupply: waterSupply ?? this.waterSupply,
 //       electricalConnection: electricalConnection ?? this.electricalConnection,
 //       compartmentNumber: compartmentNumber ?? this.compartmentNumber,
+//       hasSendVerifiedRequest: hasSendVerifiedRequest ?? this.hasSendVerifiedRequest,
 //     );
 //   }
 
@@ -381,11 +395,17 @@
 //     };
 //   }
 // }
+
 // lib/models/property_model.dart
 import 'package:flutter/material.dart';
 import 'town.dart'; // Import depuis le fichier dédié
 import 'category.dart'; // Import depuis le fichier dédié
 
+// =============================================================================
+// MODÈLE FAVORI
+// =============================================================================
+
+/// Représente un bien immobilier marqué comme favori par un utilisateur
 class Favorite {
   final String id;
   final String propertyId;
@@ -401,6 +421,7 @@ class Favorite {
     required this.active,
   });
 
+  /// Factory constructor pour créer un Favorite à partir de données JSON
   factory Favorite.fromJson(Map<String, dynamic> json) {
     return Favorite(
       id: json['id'] as String,
@@ -411,6 +432,7 @@ class Favorite {
     );
   }
 
+  /// Convertit l'objet Favorite en Map JSON pour l'API
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -422,7 +444,13 @@ class Favorite {
   }
 }
 
+// =============================================================================
+// MODÈLE PROPRIÉTÉ
+// =============================================================================
+
+/// Représente un bien immobilier avec toutes ses caractéristiques et équipements
 class Property {
+  // === INFORMATIONS DE BASE ===
   final String id;
   final String title;
   final String description;
@@ -438,7 +466,7 @@ class Property {
   final Town town; // Utilise la classe Town du fichier town.dart
   final Category category; // Utilise la classe Category du fichier category.dart
 
-  // Champs de détail supplémentaires
+  // === CARACTÉRISTIQUES DÉTAILLÉES ===
   final String refNumber;
   final int livingRoomsNb;
   final bool hasInternalKitchen;
@@ -448,22 +476,23 @@ class Property {
   final bool hasSecurityGuards;
   final bool hasBalcony;
   
-  // Champ pour l'ID du propriétaire
+  // === INFORMATIONS PROPRIÉTAIRE ===
   final String ownerId;
   
-  // NOUVEAU : Champs pour la localisation
+  // === LOCALISATION GÉOGRAPHIQUE ===
   final List<String> location;
   final double? latitude;
   final double? longitude;
 
-  // NOUVEAUX CHAMPS : Services et état
+  // === SERVICES ET ÉQUIPEMENTS ===
   final String waterSupply;
   final String electricalConnection;
   final int compartmentNumber;
 
-  // NOUVEAU : Champ pour la vérification de demande
+  // === ÉTAT DE VÉRIFICATION ===
   final bool hasSendVerifiedRequest;
 
+  /// Constructeur principal de la classe Property
   Property({
     required this.id,
     required this.title,
@@ -488,126 +517,71 @@ class Property {
     required this.hasSecurityGuards,
     required this.hasBalcony,
     required this.ownerId,
-    // NOUVEAU : Localisation
     required this.location,
     this.latitude,
     this.longitude,
-    // NOUVEAUX CHAMPS : Services et état
     required this.waterSupply,
     required this.electricalConnection,
     required this.compartmentNumber,
-    // NOUVEAU : Vérification de demande
     required this.hasSendVerifiedRequest,
   });
 
+  // === MÉTHODES DE PARSING JSON ===
+
+  /// Factory constructor pour créer un Property à partir de données JSON
   factory Property.fromJson(Map<String, dynamic> json) {
-    // 1. Gestion des listes d'images
-    List<dynamic> otherImagesJson = json['other_images'] ?? [];
-    List<String> otherImages = otherImagesJson
-        .where((e) => e != null)
-        .map((e) => e.toString())
-        .toList();
-
-    // 2. Gestion robuste des champs numériques/booléens
-    final price = (json['monthly_price'] as num?)?.toInt() ?? 0;
-    final areaValue = (json['area'] as num?)?.toInt() ?? 0;
-    final rooms = (json['rooms_nb'] as num?)?.toInt() ?? 0;
-    final bathrooms = (json['bathrooms_nb'] as num?)?.toInt() ?? 0;
-    
-    final livingRooms = (json['living_rooms_nb'] as num?)?.toInt() ?? 0; 
-    final compartmentNumber = (json['compartment_number'] as num?)?.toInt() ?? 0;
-    
-    final isCertified = json['certified'] as bool? ?? false;
-    final hasIntKitchen = json['has_internal_kitchen'] as bool? ?? false;
-    final hasExtKitchen = json['has_external_kitchen'] as bool? ?? false;
-    final hasParking = json['has_a_parking'] as bool? ?? false;
-    final hasAC = json['has_air_conditioning'] as bool? ?? false;
-    final hasSecurity = json['has_security_guards'] as bool? ?? false;
-    final hasBaly = json['has_balcony'] as bool? ?? false;
-
-    final descriptionValue = json['description'] as String? ?? 'Description non disponible.';
-
-    // 3. Gestion de l'ID du propriétaire
-    String ownerId;
-    if (json['owner_id'] != null) {
-      ownerId = json['owner_id'] as String;
-    } else if (json['owner'] != null && json['owner'] is Map<String, dynamic>) {
-      ownerId = (json['owner'] as Map<String, dynamic>)['id'] as String? ?? '';
-    } else {
-      ownerId = '';
-    }
-
-    // 4. NOUVEAU : Gestion de la localisation
-    List<dynamic> locationJson = json['location'] ?? [];
-    List<String> locationList = locationJson.map((e) => e.toString()).toList();
-    
-    // Extraction des coordonnées GPS
-    double? parsedLatitude;
-    double? parsedLongitude;
-    
-    if (locationList.length >= 3) {
-      try {
-        parsedLatitude = double.tryParse(locationList[1]); // Index 1 = latitude
-        parsedLongitude = double.tryParse(locationList[2]); // Index 2 = longitude
-      } catch (e) {
-        debugPrint("Erreur parsing coordonnées: $e");
-      }
-    }
-
-    // 5. NOUVEAUX CHAMPS : Services et état
-    final waterSupply = json['water_supply'] as String? ?? 'not_available';
-    final electricalConnection = json['electrical_connection'] as String? ?? 'not_available';
-
-    // 6. NOUVEAU : Gestion de la vérification de demande
-    final hasSendVerifiedRequest = json['has_send_verified_request'] as bool? ?? false;
-
     return Property(
       id: json['id'] as String,
       title: json['title'] as String,
-      description: descriptionValue,
+      description: json['description'] as String? ?? 'Description non disponible.',
       address: json['address'] as String? ?? 'Adresse non spécifiée',
       
-      monthlyPrice: price,
-      area: areaValue,
-      roomsNb: rooms,
-      bathroomsNb: bathrooms,
+      // Parsing des valeurs numériques avec gestion des nulls
+      monthlyPrice: (json['monthly_price'] as num?)?.toInt() ?? 0,
+      area: (json['area'] as num?)?.toInt() ?? 0,
+      roomsNb: (json['rooms_nb'] as num?)?.toInt() ?? 0,
+      bathroomsNb: (json['bathrooms_nb'] as num?)?.toInt() ?? 0,
+      livingRoomsNb: (json['living_rooms_nb'] as num?)?.toInt() ?? 0,
+      compartmentNumber: (json['compartment_number'] as num?)?.toInt() ?? 0,
       
-      mainImage: json['main_image'] as String? ?? '', 
-      otherImages: otherImages,
-      certified: isCertified,
+      // Gestion des images
+      mainImage: json['main_image'] as String? ?? '',
+      otherImages: _parseOtherImages(json['other_images']),
+      
+      // Parsing des booléens avec valeurs par défaut
+      certified: json['certified'] as bool? ?? false,
+      hasInternalKitchen: json['has_internal_kitchen'] as bool? ?? false,
+      hasExternalKitchen: json['has_external_kitchen'] as bool? ?? false,
+      hasAParking: json['has_a_parking'] as bool? ?? false,
+      hasAirConditioning: json['has_air_conditioning'] as bool? ?? false,
+      hasSecurityGuards: json['has_security_guards'] as bool? ?? false,
+      hasBalcony: json['has_balcony'] as bool? ?? false,
+      hasSendVerifiedRequest: json['has_send_verified_request'] as bool? ?? false,
+      
       status: json['status'] as String? ?? 'free',
       
+      // Parsing des objets imbriqués
       town: Town.fromJson(json['town'] as Map<String, dynamic>),
       category: Category.fromJson(json['category'] as Map<String, dynamic>),
       
       refNumber: json['refnumber'] as String? ?? 'N/A',
-      livingRoomsNb: livingRooms,
-      hasInternalKitchen: hasIntKitchen,
-      hasExternalKitchen: hasExtKitchen,
-      hasAParking: hasParking,
-      hasAirConditioning: hasAC,
-      hasSecurityGuards: hasSecurity,
-      hasBalcony: hasBaly,
+      ownerId: _parseOwnerId(json),
       
-      ownerId: ownerId,
+      // Parsing de la localisation
+      location: _parseLocation(json['location']),
+      latitude: _parseLatitude(json['location']),
+      longitude: _parseLongitude(json['location']),
       
-      // NOUVEAU : Localisation
-      location: locationList,
-      latitude: parsedLatitude,
-      longitude: parsedLongitude,
-      
-      // NOUVEAUX CHAMPS : Services et état
-      waterSupply: waterSupply,
-      electricalConnection: electricalConnection,
-      compartmentNumber: compartmentNumber,
-      
-      // NOUVEAU : Vérification de demande
-      hasSendVerifiedRequest: hasSendVerifiedRequest,
+      // Services avec valeurs par défaut
+      waterSupply: json['water_supply'] as String? ?? 'not_available',
+      electricalConnection: json['electrical_connection'] as String? ?? 'not_available',
     );
   }
 
+  /// Convertit l'objet Property en Map JSON pour l'API
   Map<String, dynamic> toJson() {
     return {
+      // Informations de base
       'id': id,
       'title': title,
       'description': description,
@@ -620,8 +594,12 @@ class Property {
       'other_images': otherImages,
       'certified': certified,
       'status': status,
+      
+      // Objets imbriqués
       'town': town.toJson(),
       'category': category.toJson(),
+      
+      // Caractéristiques détaillées
       'refnumber': refNumber,
       'living_rooms_nb': livingRoomsNb,
       'has_internal_kitchen': hasInternalKitchen,
@@ -630,21 +608,79 @@ class Property {
       'has_air_conditioning': hasAirConditioning,
       'has_security_guards': hasSecurityGuards,
       'has_balcony': hasBalcony,
+      
+      // Propriétaire
       'owner_id': ownerId,
+      
+      // Localisation
       'location': location,
       'latitude': latitude,
       'longitude': longitude,
+      
+      // Services
       'water_supply': waterSupply,
       'electrical_connection': electricalConnection,
       'compartment_number': compartmentNumber,
+      
+      // Vérification
       'has_send_verified_request': hasSendVerifiedRequest,
     };
   }
 
-  // Méthode utilitaire pour vérifier si la localisation est disponible
-  bool get hasValidLocation => latitude != null && longitude != null;
+  // === MÉTHODES UTILITAIRES PRIVÉES ===
 
-  // Méthode pour créer une copie avec des valeurs modifiées
+  /// Parse la liste des images supplémentaires
+  static List<String> _parseOtherImages(dynamic imagesJson) {
+    final List<dynamic> otherImagesJson = imagesJson ?? [];
+    return otherImagesJson
+        .where((e) => e != null)
+        .map((e) => e.toString())
+        .toList();
+  }
+
+  /// Parse l'ID du propriétaire depuis différentes sources possibles
+  static String _parseOwnerId(Map<String, dynamic> json) {
+    if (json['owner_id'] != null) {
+      return json['owner_id'] as String;
+    } else if (json['owner'] != null && json['owner'] is Map<String, dynamic>) {
+      return (json['owner'] as Map<String, dynamic>)['id'] as String? ?? '';
+    } else {
+      return '';
+    }
+  }
+
+  /// Parse la liste de localisation
+  static List<String> _parseLocation(dynamic locationJson) {
+    final List<dynamic> locationList = locationJson ?? [];
+    return locationList.map((e) => e.toString()).toList();
+  }
+
+  /// Parse la latitude depuis les données de localisation
+  static double? _parseLatitude(dynamic locationJson) {
+    return _parseCoordinate(locationJson, 1); // Index 1 = latitude
+  }
+
+  /// Parse la longitude depuis les données de localisation
+  static double? _parseLongitude(dynamic locationJson) {
+    return _parseCoordinate(locationJson, 2); // Index 2 = longitude
+  }
+
+  /// Parse une coordonnée géographique spécifique
+  static double? _parseCoordinate(dynamic locationJson, int index) {
+    try {
+      final List<dynamic> locationList = locationJson ?? [];
+      if (locationList.length >= index + 1) {
+        return double.tryParse(locationList[index].toString());
+      }
+    } catch (e) {
+      debugPrint("Erreur parsing coordonnée à l'index $index: $e");
+    }
+    return null;
+  }
+
+  // === MÉTHODES PUBLIQUES UTILITAIRES ===
+
+  /// Crée une nouvelle instance de Property avec les champs mis à jour
   Property copyWith({
     String? id,
     String? title,
@@ -711,22 +747,19 @@ class Property {
     );
   }
 
-  // Méthode pour obtenir le prix formaté
-  String get formattedPrice {
-    return '$monthlyPrice FCFA/mois';
-  }
+  /// Vérifie si la localisation GPS est disponible
+  bool get hasValidLocation => latitude != null && longitude != null;
 
-  // Méthode pour obtenir la surface formatée
-  String get formattedArea {
-    return '$area m²';
-  }
+  /// Retourne le prix formaté pour l'affichage
+  String get formattedPrice => '$monthlyPrice FCFA/mois';
 
-  // Méthode pour vérifier si la propriété est disponible
-  bool get isAvailable {
-    return status == 'free' || status == 'available';
-  }
+  /// Retourne la surface formatée pour l'affichage
+  String get formattedArea => '$area m²';
 
-  // Méthode pour obtenir les équipements sous forme de liste
+  /// Vérifie si la propriété est disponible à la location
+  bool get isAvailable => status == 'free' || status == 'available';
+
+  /// Retourne la liste des équipements/aménités sous forme de texte
   List<String> get amenities {
     final List<String> amenitiesList = [];
     
@@ -739,9 +772,55 @@ class Property {
     
     return amenitiesList;
   }
+
+  /// Retourne le statut d'approvisionnement en eau sous forme lisible
+  String get formattedWaterSupply {
+    switch (waterSupply) {
+      case 'available':
+        return 'Eau disponible';
+      case 'not_available':
+        return 'Eau non disponible';
+      case 'planned':
+        return 'Eau prévue';
+      default:
+        return 'Non spécifié';
+    }
+  }
+
+  /// Retourne le statut de connexion électrique sous forme lisible
+  String get formattedElectricalConnection {
+    switch (electricalConnection) {
+      case 'available':
+        return 'Électricité disponible';
+      case 'not_available':
+        return 'Électricité non disponible';
+      case 'planned':
+        return 'Électricité prévue';
+      default:
+        return 'Non spécifié';
+    }
+  }
+
+  /// Retourne le nombre total de pièces (chambres + salons)
+  int get totalRooms => roomsNb + livingRoomsNb;
+
+  /// Vérifie si la propriété a au moins une image
+  bool get hasImages => mainImage.isNotEmpty || otherImages.isNotEmpty;
+
+  /// Retourne toutes les images (principale + secondaires)
+  List<String> get allImages {
+    final List<String> images = [];
+    if (mainImage.isNotEmpty) images.add(mainImage);
+    images.addAll(otherImages);
+    return images;
+  }
 }
 
-// Modèle pour la réponse paginée
+// =============================================================================
+// RÉPONSE PAGINÉE DE PROPRIÉTÉS
+// =============================================================================
+
+/// Représente une réponse paginée de la liste des propriétés
 class PropertyListResponse {
   final List<Property> records;
   final int totalRecords;
@@ -755,18 +834,22 @@ class PropertyListResponse {
     required this.currentPage,
   });
 
+  /// Factory constructor pour créer une PropertyListResponse à partir de données JSON
   factory PropertyListResponse.fromJson(Map<String, dynamic> json) {
     final metadata = json['metadata'] as Map<String, dynamic>;
     final recordsJson = json['records'] as List<dynamic>;
 
     return PropertyListResponse(
-      records: recordsJson.map((e) => Property.fromJson(e as Map<String, dynamic>)).toList(),
+      records: recordsJson
+          .map((e) => Property.fromJson(e as Map<String, dynamic>))
+          .toList(),
       totalRecords: metadata['total_records'] as int,
       totalPages: metadata['total_pages'] as int,
       currentPage: metadata['current_page'] as int,
     );
   }
 
+  /// Convertit l'objet PropertyListResponse en Map JSON pour l'API
   Map<String, dynamic> toJson() {
     return {
       'records': records.map((property) => property.toJson()).toList(),
@@ -777,4 +860,13 @@ class PropertyListResponse {
       },
     };
   }
+
+  /// Vérifie s'il y a une page suivante
+  bool get hasNextPage => currentPage < totalPages;
+
+  /// Vérifie s'il y a une page précédente
+  bool get hasPreviousPage => currentPage > 1;
+
+  /// Retourne le nombre d'éléments sur la page actuelle
+  int get currentPageSize => records.length;
 }

@@ -212,11 +212,12 @@
 //     });
 //   }
 
-//   Future<void> _loadProperties(
-//       {bool isInitialLoad = false,
-//       bool isPaginating = false,
-//       String? newQuery,
-//       Map<String, dynamic>? newFilters}) async {
+//   Future<void> _loadProperties({
+//     bool isInitialLoad = false,
+//     bool isPaginating = false,
+//     String? newQuery,
+//     Map<String, dynamic>? newFilters,
+//   }) async {
 //     if (!mounted) return;
 
 //     final bool isNewSearch = newQuery != null;
@@ -252,9 +253,19 @@
 //         'limit': _limit,
 //       };
 
+//       // MODIFICATION ICI : Filtrer les paramètres pour n'inclure que les équipements à true
 //       _filters.forEach((key, value) {
 //         if (value != null && value.toString().isNotEmpty) {
-//           queryParams[key] = value;
+//           // Pour les champs d'équipements, on n'envoie que si la valeur est 'true'
+//           if (key.startsWith('has_')) {
+//             if (value == 'true') {
+//               queryParams[key] = value;
+//             }
+//             // On n'ajoute pas le paramètre si la valeur est 'false' ou vide
+//           } else {
+//             // Pour tous les autres champs, on garde le comportement actuel
+//             queryParams[key] = value;
+//           }
 //         }
 //       });
 
@@ -315,6 +326,22 @@
 //       default:
 //         return Icons.help_outline;
 //     }
+//   }
+
+//   // Méthode pour vérifier les permissions de modification
+//   bool _canEditProperty(Property property) {
+//     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+//     final currentUser = authProvider.currentUser;
+    
+//     if (currentUser == null) {
+//       return false;
+//     }
+
+//     final isOwner = currentUser.id == property.ownerId;
+//     final isAdmin = currentUser.role == 'admin';
+//     final isStaff = currentUser.isStaff == true;
+
+//     return isOwner || isAdmin || isStaff;
 //   }
 
 //   // ---------- UI ----------
@@ -1055,36 +1082,14 @@
 //                       ),
 //                     ),
                     
-//                     if (property.certified)
-//                       Positioned(
-//                         top: 12,
-//                         right: 12,
-//                         child: Container(
-//                           padding: const EdgeInsets.symmetric(
-//                               horizontal: 10, vertical: 6),
-//                           decoration: BoxDecoration(
-//                             color: AppThemes.getCertifiedColor(context),
-//                             borderRadius: BorderRadius.circular(12),
-//                           ),
-//                           child: const Row(
-//                             mainAxisSize: MainAxisSize.min,
-//                             children: [
-//                               Icon(Icons.verified, size: 14, color: Colors.white),
-//                               SizedBox(width: 4),
-//                               Text('Certifié',
-//                                   style:
-//                                       TextStyle(color: Colors.white, fontSize: 11)),
-//                             ],
-//                           ),
-//                         ),
-//                       ),
+//                     // === DISPOSITION AMÉLIORÉE DES BADGES ===
                     
+//                     // Badge Statut (en haut à gauche)
 //                     Positioned(
 //                       top: 12,
 //                       left: 12,
 //                       child: Container(
-//                         padding: const EdgeInsets.symmetric(
-//                             horizontal: 10, vertical: 6),
+//                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
 //                         decoration: BoxDecoration(
 //                           color: _getStatusColor(context, property.status),
 //                           borderRadius: BorderRadius.circular(12),
@@ -1092,8 +1097,7 @@
 //                         child: Row(
 //                           mainAxisSize: MainAxisSize.min,
 //                           children: [
-//                             Icon(_getStatusIcon(property.status),
-//                                 size: 14, color: Colors.white),
+//                             Icon(_getStatusIcon(property.status), size: 14, color: Colors.white),
 //                             const SizedBox(width: 4),
 //                             Text(_getStatusTranslation(locale, property.status),
 //                                 style: const TextStyle(
@@ -1105,71 +1109,126 @@
 //                       ),
 //                     ),
                     
-//                     // ❤️ BOUTON FAVORI - SEULEMENT ROUGE SI active = true
+//                     // === CONTENEUR DROITE POUR TOUS LES BADGES ===
 //                     Positioned(
 //                       top: 12,
-//                       right: property.certified ? 70 : 12,
-//                       child: GestureDetector(
-//                         onTap: () async {
-//                           if (!authProvider.isLoggedIn || _togglingFavoriteId == property.id) {
-//                             if (!authProvider.isLoggedIn) {
-//                               ScaffoldMessenger.of(context).showSnackBar(
-//                                 SnackBar(
-//                                   content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
-//                                   backgroundColor: AppThemes.getWarningColor(context),
-//                                 ),
-//                               );
-//                             }
-//                             return;
-//                           }
-                          
-//                           setState(() => _togglingFavoriteId = property.id);
-                          
-//                           try {
-//                             await authProvider.toggleFavorite(property.id);
-//                           } catch (e) {
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               SnackBar(
-//                                 content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
-//                                 backgroundColor: AppThemes.getErrorColor(context),
+//                       right: 12,
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.end,
+//                         children: [
+//                           // Badge Certifié (si applicable)
+//                           if (property.certified) ...[
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+//                               decoration: BoxDecoration(
+//                                 color: AppThemes.getCertifiedColor(context),
+//                                 borderRadius: BorderRadius.circular(12),
 //                               ),
-//                             );
-//                           } finally {
-//                             if (mounted) {
-//                               setState(() => _togglingFavoriteId = null);
-//                             }
-//                           }
-//                         },
-//                         child: Container(
-//                           padding: const EdgeInsets.all(6),
-//                           decoration: BoxDecoration(
-//                             color: Colors.white.withOpacity(0.9),
-//                             borderRadius: BorderRadius.circular(20),
-//                             boxShadow: [
-//                               BoxShadow(
-//                                 color: Colors.black.withOpacity(0.1),
-//                                 blurRadius: 4,
-//                                 offset: const Offset(0, 2),
+//                               child: const Row(
+//                                 mainAxisSize: MainAxisSize.min,
+//                                 children: [
+//                                   Icon(Icons.verified, size: 14, color: Colors.white),
+//                                   SizedBox(width: 4),
+//                                   Text('Certifié',
+//                                       style: TextStyle(color: Colors.white, fontSize: 11)),
+//                                 ],
 //                               ),
-//                             ],
-//                           ),
-//                           child: _togglingFavoriteId == property.id
-//                               ? SizedBox(
-//                                   width: 20,
-//                                   height: 20,
-//                                   child: CircularProgressIndicator(
-//                                     strokeWidth: 2,
-//                                     valueColor: AlwaysStoppedAnimation<Color>(
-//                                       isFavorite ? Colors.red : Colors.grey,
+//                             ),
+//                             const SizedBox(height: 8), // Espace entre les badges
+//                           ],
+                          
+//                           // Badge Propriétaire (si applicable)
+//                           if (_canEditProperty(property)) ...[
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+//                               decoration: BoxDecoration(
+//                                 // color: Colors.green.withOpacity(0.9),
+//                                 color: AppThemes.getCertifiedColor(context),
+//                                 borderRadius: BorderRadius.circular(12),
+//                               ),
+//                               child: const Row(
+//                                 mainAxisSize: MainAxisSize.min,
+//                                 children: [
+//                                   Icon(Icons.person, size: 14, color: Colors.white),
+//                                   SizedBox(width: 4),
+//                                   Text(
+//                                     'Propriétaire',
+//                                     style: TextStyle(
+//                                       color: Colors.white,
+//                                       fontSize: 11,
+//                                       fontWeight: FontWeight.w600,
 //                                     ),
 //                                   ),
-//                                 )
-//                               : Icon(
-//                                   isFavorite ? Icons.favorite : Icons.favorite_border,
-//                                   color: isFavorite ? Colors.red : Colors.grey,
-//                                   size: 20,
-//                                 ),
-//                         ),
+//                                 ],
+//                               ),
+//                             ),
+//                             const SizedBox(height: 8), // Espace entre les badges
+//                           ],
+                          
+//                           // ❤️ BOUTON FAVORI - TOUJOURS EN DERNIER
+//                           GestureDetector(
+//                             onTap: () async {
+//                               if (!authProvider.isLoggedIn || _togglingFavoriteId == property.id) {
+//                                 if (!authProvider.isLoggedIn) {
+//                                   ScaffoldMessenger.of(context).showSnackBar(
+//                                     SnackBar(
+//                                       content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
+//                                       backgroundColor: AppThemes.getWarningColor(context),
+//                                     ),
+//                                   );
+//                                 }
+//                                 return;
+//                               }
+                              
+//                               setState(() => _togglingFavoriteId = property.id);
+                              
+//                               try {
+//                                 await authProvider.toggleFavorite(property.id);
+//                               } catch (e) {
+//                                 ScaffoldMessenger.of(context).showSnackBar(
+//                                   SnackBar(
+//                                     content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
+//                                     backgroundColor: AppThemes.getErrorColor(context),
+//                                   ),
+//                                 );
+//                               } finally {
+//                                 if (mounted) {
+//                                   setState(() => _togglingFavoriteId = null);
+//                                 }
+//                               }
+//                             },
+//                             child: Container(
+//                               padding: const EdgeInsets.all(8),
+//                               decoration: BoxDecoration(
+//                                 color: Colors.white.withOpacity(0.95),
+//                                 borderRadius: BorderRadius.circular(20),
+//                                 boxShadow: [
+//                                   BoxShadow(
+//                                     color: Colors.black.withOpacity(0.15),
+//                                     blurRadius: 6,
+//                                     offset: const Offset(0, 3),
+//                                   ),
+//                                 ],
+//                               ),
+//                               child: _togglingFavoriteId == property.id
+//                                   ? SizedBox(
+//                                       width: 18,
+//                                       height: 18,
+//                                       child: CircularProgressIndicator(
+//                                         strokeWidth: 2,
+//                                         valueColor: AlwaysStoppedAnimation<Color>(
+//                                           isFavorite ? Colors.red : Colors.grey,
+//                                         ),
+//                                       ),
+//                                     )
+//                                   : Icon(
+//                                       isFavorite ? Icons.favorite : Icons.favorite_border,
+//                                       color: isFavorite ? Colors.red : Colors.grey,
+//                                       size: 18,
+//                                     ),
+//                             ),
+//                           ),
+//                         ],
 //                       ),
 //                     ),
 //                   ],
@@ -1311,7 +1370,6 @@
 //     );
 //   }
 // }
-
 // lib/pages/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -1326,6 +1384,14 @@ import '../providers/auth_provider.dart';
 import '../constants/app_themes.dart';
 import '../constants/app_translations.dart';
 
+// ====================================================================
+// PAGE D'ACCUEIL AVEC RECHERCHE ET FILTRES
+// ====================================================================
+/// Page principale affichant la liste des propriétés avec fonctionnalités de :
+/// - Recherche en temps réel
+/// - Filtres avancés (ville, catégorie, statut, prix, surface, équipements)
+/// - Pagination infinie
+/// - Gestion des favoris
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -1334,12 +1400,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // ==================================================================
+  // SERVICES ET CONTRÔLEURS
+  // ==================================================================
   final PropertyService _propertyService = PropertyService();
   final TownService _townService = TownService();
   final CategoryService _categoryService = CategoryService();
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
+  // ==================================================================
+  // ÉTAT DE LA PAGE
+  // ==================================================================
   List<Property> _properties = [];
   bool _isLoading = true;
   bool _isPaginating = false;
@@ -1350,44 +1422,64 @@ class _HomePageState extends State<HomePage> {
   String _currentSearchQuery = '';
   String? _togglingFavoriteId;
 
+  // ==================================================================
+  // FILTRES APPLIQUÉS
+  // ==================================================================
+  /// Map contenant tous les filtres disponibles pour la recherche
   final Map<String, dynamic> _filters = {
+    // Recherche texte
     'search': '',
     'title': '',
     'address': '',
+    
+    // Filtres numériques avec opérations
     'monthly_price': '',
     'monthly_price_bis': '',
     'monthly_price_operation': '',
+    
     'area': '',
     'area_bis': '',
     'area_operation': '',
+    
     'rooms_nb': '',
     'rooms_nb_bis': '',
     'rooms_nb_operation': '',
+    
     'bathrooms_nb': '',
     'bathrooms_nb_bis': '',
     'bathrooms_nb_operation': '',
+    
     'living_rooms_nb': '',
     'living_rooms_nb_bis': '',
     'living_rooms_nb_operation': '',
+    
     'compartment_number': '',
     'compartment_number_bis': '',
     'compartment_number_operation': '',
+    
+    // Filtres de statut et caractéristiques
     'status': '',
     'water_supply': '',
     'electrical_connection': '',
     'town_id': '',
     'category_property_id': '',
     'certified': '',
+    
+    // Équipements (seulement 'true' est envoyé à l'API)
     'has_internal_kitchen': '',
     'has_external_kitchen': '',
     'has_a_parking': '',
     'has_air_conditioning': '',
     'has_security_guards': '',
     'has_balcony': '',
+    
+    // Tri
     'order': 'asc',
   };
 
-  // Variables locales pour le bottom sheet
+  // ==================================================================
+  // ÉTAT DES FILTRES (BOTTOM SHEET)
+  // ==================================================================
   List<Town> _filteredTowns = [];
   Town? _selectedTown;
   bool _isSearchingTowns = false;
@@ -1398,23 +1490,18 @@ class _HomePageState extends State<HomePage> {
   bool _isSearchingCategories = false;
   bool _showCategoryDropdown = false;
 
+  // ==================================================================
+  // LIFECYCLE METHODS
+  // ==================================================================
+  
   @override
   void initState() {
     super.initState();
+    // Charge les propriétés après le premier rendu
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProperties(isInitialLoad: true);
     });
     _scrollController.addListener(_scrollListener);
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent * 0.8 &&
-        !_isLoading &&
-        !_isPaginating &&
-        _hasMoreData) {
-      _loadProperties(isPaginating: true);
-    }
   }
 
   @override
@@ -1425,114 +1512,39 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // ---------- MÉTHODES MÉTIER AMÉLIORÉES ----------
-  Future<void> _loadAllTowns() async {
-    try {
-      final towns = await _townService.getAllTowns();
-      _filteredTowns = towns;
-    } catch (e) {
-      debugPrint('Erreur chargement villes: $e');
+  // ==================================================================
+  // GESTION DE LA PAGINATION
+  // ==================================================================
+  
+  /// Écoute le défilement pour charger plus de données
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent * 0.8 &&
+        !_isLoading &&
+        !_isPaginating &&
+        _hasMoreData) {
+      _loadProperties(isPaginating: true);
     }
   }
 
-  void _onTownSearchChanged(String query, Function setStateBS) async {
-    if (query.isEmpty) {
-      setStateBS(() {
-        _showTownDropdown = false;
-        _filteredTowns = [];
-      });
-      return;
-    }
-    setStateBS(() {
-      _isSearchingTowns = true;
-      _showTownDropdown = true;
-    });
-    try {
-      final response = await _townService.searchTowns(query);
-      setStateBS(() {
-        _filteredTowns = response.records;
-        _isSearchingTowns = false;
-      });
-    } catch (e) {
-      setStateBS(() => _isSearchingTowns = false);
-    }
-  }
-
-  void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
-    setStateBS(() {
-      _selectedTown = town;
-      _showTownDropdown = false;
-      localFilters['town_id'] = town.id;
-      townController.text = town.name;
-    });
-  }
-
-  void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
-    setStateBS(() {
-      _selectedTown = null;
-      _showTownDropdown = false;
-      localFilters['town_id'] = '';
-      townController.clear();
-    });
-  }
-
-  Future<void> _loadAllCategories() async {
-    try {
-      final categories = await _categoryService.getAllCategories();
-      _filteredCategories = categories;
-    } catch (e) {
-      debugPrint('Erreur chargement catégories: $e');
-    }
-  }
-
-  void _onCategorySearchChanged(String query, Function setStateBS) async {
-    if (query.isEmpty) {
-      setStateBS(() {
-        _showCategoryDropdown = false;
-        _filteredCategories = [];
-      });
-      return;
-    }
-    setStateBS(() {
-      _isSearchingCategories = true;
-      _showCategoryDropdown = true;
-    });
-    try {
-      final response = await _categoryService.searchCategories(query);
-      setStateBS(() {
-        _filteredCategories = response.records;
-        _isSearchingCategories = false;
-      });
-    } catch (e) {
-      setStateBS(() => _isSearchingCategories = false);
-    }
-  }
-
-  void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
-    setStateBS(() {
-      _selectedCategory = category;
-      _showCategoryDropdown = false;
-      localFilters['category_property_id'] = category.id;
-      categoryController.text = category.name;
-    });
-  }
-
-  void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
-    setStateBS(() {
-      _selectedCategory = null;
-      _showCategoryDropdown = false;
-      localFilters['category_property_id'] = '';
-      categoryController.clear();
-    });
-  }
-
-  Future<void> _loadProperties(
-      {bool isInitialLoad = false,
-      bool isPaginating = false,
-      String? newQuery,
-      Map<String, dynamic>? newFilters}) async {
+  // ==================================================================
+  // MÉTHODES DE GESTION DES DONNÉES
+  // ==================================================================
+  
+  /// Charge les propriétés avec les filtres actuels
+  /// [isInitialLoad] : true pour recharger depuis le début
+  /// [isPaginating] : true pour charger la page suivante
+  /// [newQuery] : nouvelle requête de recherche
+  /// [newFilters] : nouveaux filtres à appliquer
+  Future<void> _loadProperties({
+    bool isInitialLoad = false,
+    bool isPaginating = false,
+    String? newQuery,
+    Map<String, dynamic>? newFilters,
+  }) async {
     if (!mounted) return;
 
+    // Détermine le comportement de chargement
     final bool isNewSearch = newQuery != null;
     final bool isNewFilter = newFilters != null;
     final bool shouldReset = isInitialLoad || isNewSearch || isNewFilter || !isPaginating;
@@ -1540,12 +1552,14 @@ class _HomePageState extends State<HomePage> {
     final int nextPage = shouldReset ? 1 : _currentPage + 1;
     final String effectiveQuery = newQuery ?? _currentSearchQuery;
 
+    // Met à jour les filtres si nécessaire
     if (isNewFilter) {
       _filters.clear();
       _filters.addAll(newFilters!);
     }
     _filters['search'] = effectiveQuery;
 
+    // Met à jour l'état de l'interface
     setState(() {
       if (shouldReset) {
         _properties = [];
@@ -1561,19 +1575,30 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
+      // Construction des paramètres de requête
       final Map<String, dynamic> queryParams = {
         'page': nextPage,
         'limit': _limit,
       };
 
+      // Filtrage intelligent des paramètres
       _filters.forEach((key, value) {
         if (value != null && value.toString().isNotEmpty) {
-          queryParams[key] = value;
+          // Pour les équipements, on n'envoie que si la valeur est 'true'
+          if (key.startsWith('has_')) {
+            if (value == 'true') {
+              queryParams[key] = value;
+            }
+          } else {
+            // Pour tous les autres champs, comportement normal
+            queryParams[key] = value;
+          }
         }
       });
 
       debugPrint('Requête API avec filtres: $queryParams');
 
+      // Appel API
       final response = await _propertyService.getPropertiesWithFilters(queryParams);
       
       if (mounted) {
@@ -1596,6 +1621,131 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // ==================================================================
+  // GESTION DES VILLES (FILTRES)
+  // ==================================================================
+  
+  /// Charge toutes les villes disponibles
+  Future<void> _loadAllTowns() async {
+    try {
+      final towns = await _townService.getAllTowns();
+      _filteredTowns = towns;
+    } catch (e) {
+      debugPrint('Erreur chargement villes: $e');
+    }
+  }
+
+  /// Gère la recherche de villes
+  void _onTownSearchChanged(String query, Function setStateBS) async {
+    if (query.isEmpty) {
+      setStateBS(() {
+        _showTownDropdown = false;
+        _filteredTowns = [];
+      });
+      return;
+    }
+    
+    setStateBS(() {
+      _isSearchingTowns = true;
+      _showTownDropdown = true;
+    });
+    
+    try {
+      final response = await _townService.searchTowns(query);
+      setStateBS(() {
+        _filteredTowns = response.records;
+        _isSearchingTowns = false;
+      });
+    } catch (e) {
+      setStateBS(() => _isSearchingTowns = false);
+    }
+  }
+
+  /// Sélectionne une ville dans les filtres
+  void _selectTown(Town town, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
+    setStateBS(() {
+      _selectedTown = town;
+      _showTownDropdown = false;
+      localFilters['town_id'] = town.id;
+      townController.text = town.name;
+    });
+  }
+
+  /// Efface la sélection de ville
+  void _clearTownSelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController townController) {
+    setStateBS(() {
+      _selectedTown = null;
+      _showTownDropdown = false;
+      localFilters['town_id'] = '';
+      townController.clear();
+    });
+  }
+
+  // ==================================================================
+  // GESTION DES CATÉGORIES (FILTRES)
+  // ==================================================================
+  
+  /// Charge toutes les catégories disponibles
+  Future<void> _loadAllCategories() async {
+    try {
+      final categories = await _categoryService.getAllCategories();
+      _filteredCategories = categories;
+    } catch (e) {
+      debugPrint('Erreur chargement catégories: $e');
+    }
+  }
+
+  /// Gère la recherche de catégories
+  void _onCategorySearchChanged(String query, Function setStateBS) async {
+    if (query.isEmpty) {
+      setStateBS(() {
+        _showCategoryDropdown = false;
+        _filteredCategories = [];
+      });
+      return;
+    }
+    
+    setStateBS(() {
+      _isSearchingCategories = true;
+      _showCategoryDropdown = true;
+    });
+    
+    try {
+      final response = await _categoryService.searchCategories(query);
+      setStateBS(() {
+        _filteredCategories = response.records;
+        _isSearchingCategories = false;
+      });
+    } catch (e) {
+      setStateBS(() => _isSearchingCategories = false);
+    }
+  }
+
+  /// Sélectionne une catégorie dans les filtres
+  void _selectCategory(Category category, Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
+    setStateBS(() {
+      _selectedCategory = category;
+      _showCategoryDropdown = false;
+      localFilters['category_property_id'] = category.id;
+      categoryController.text = category.name;
+    });
+  }
+
+  /// Efface la sélection de catégorie
+  void _clearCategorySelection(Function setStateBS, Map<String, dynamic> localFilters, TextEditingController categoryController) {
+    setStateBS(() {
+      _selectedCategory = null;
+      _showCategoryDropdown = false;
+      localFilters['category_property_id'] = '';
+      categoryController.clear();
+    });
+  }
+
+  // ==================================================================
+  // MÉTHODES D'UTILITÉ
+  // ==================================================================
+  
+  /// Retourne la traduction du statut de la propriété
   String _getStatusTranslation(Locale locale, String status) {
     final translations = {
       'free': AppTranslations.get('status_free', locale, 'Libre'),
@@ -1605,40 +1755,32 @@ class _HomePageState extends State<HomePage> {
     return translations[status] ?? status;
   }
 
+  /// Retourne la couleur associée au statut
   Color _getStatusColor(BuildContext context, String status) {
     switch (status) {
-      case 'free':
-        return AppThemes.getSuccessColor(context);
-      case 'busy':
-        return AppThemes.getErrorColor(context);
-      case 'prev_advise':
-        return AppThemes.getWarningColor(context);
-      default:
-        return Colors.grey;
+      case 'free': return AppThemes.getSuccessColor(context);
+      case 'busy': return AppThemes.getErrorColor(context);
+      case 'prev_advise': return AppThemes.getWarningColor(context);
+      default: return Colors.grey;
     }
   }
 
+  /// Retourne l'icône associée au statut
   IconData _getStatusIcon(String status) {
     switch (status) {
-      case 'free':
-        return Icons.check_circle;
-      case 'busy':
-        return Icons.do_not_disturb;
-      case 'prev_advise':
-        return Icons.access_time;
-      default:
-        return Icons.help_outline;
+      case 'free': return Icons.check_circle;
+      case 'busy': return Icons.do_not_disturb;
+      case 'prev_advise': return Icons.access_time;
+      default: return Icons.help_outline;
     }
   }
 
-  // Méthode pour vérifier les permissions de modification
+  /// Vérifie si l'utilisateur peut modifier cette propriété
   bool _canEditProperty(Property property) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.currentUser;
     
-    if (currentUser == null) {
-      return false;
-    }
+    if (currentUser == null) return false;
 
     final isOwner = currentUser.id == property.ownerId;
     final isAdmin = currentUser.role == 'admin';
@@ -1647,21 +1789,25 @@ class _HomePageState extends State<HomePage> {
     return isOwner || isAdmin || isStaff;
   }
 
-  // ---------- UI ----------
+  // ==================================================================
+  // WIDGETS DE L'INTERFACE UTILISATEUR
+  // ==================================================================
 
+  /// Barre de recherche avec bouton de filtres
   Widget _buildSearchBar(BuildContext context, Locale locale) {
     final accent = Theme.of(context).colorScheme.secondary;
+    
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
       child: Row(
         children: [
+          // Champ de recherche
           Expanded(
             child: TextField(
               controller: _searchController,
               onSubmitted: (q) => _loadProperties(newQuery: q),
               decoration: InputDecoration(
-                hintText:
-                    AppTranslations.get('search_placeholder', locale, 'Rechercher…'),
+                hintText: AppTranslations.get('search_placeholder', locale, 'Rechercher…'),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 suffixIcon: _currentSearchQuery.isNotEmpty
                     ? IconButton(
@@ -1677,12 +1823,12 @@ class _HomePageState extends State<HomePage> {
                 ),
                 filled: true,
                 fillColor: Theme.of(context).cardColor,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
               ),
             ),
           ),
           const SizedBox(width: 10),
+          // Bouton de filtres
           Material(
             color: accent,
             borderRadius: BorderRadius.circular(30),
@@ -1700,9 +1846,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Affiche le bottom sheet des filtres
   void _showFilterBottomSheet(BuildContext context, Locale locale) {
     final Map<String, dynamic> localFilters = Map.from(_filters);
 
+    // Contrôleurs pour les champs de filtres
     final townSearchController = TextEditingController();
     final categorySearchController = TextEditingController();
     final priceMinCtrl = TextEditingController(text: localFilters['monthly_price']?.toString() ?? '');
@@ -1714,12 +1862,9 @@ class _HomePageState extends State<HomePage> {
     final bathMinCtrl = TextEditingController(text: localFilters['bathrooms_nb']?.toString() ?? '');
     final bathMaxCtrl = TextEditingController(text: localFilters['bathrooms_nb_bis']?.toString() ?? '');
 
-    if (_selectedTown != null) {
-      townSearchController.text = _selectedTown!.name;
-    }
-    if (_selectedCategory != null) {
-      categorySearchController.text = _selectedCategory!.name;
-    }
+    // Initialise les valeurs existantes
+    if (_selectedTown != null) townSearchController.text = _selectedTown!.name;
+    if (_selectedCategory != null) categorySearchController.text = _selectedCategory!.name;
 
     showModalBottomSheet(
       context: context,
@@ -1738,6 +1883,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // En-tête avec bouton de réinitialisation
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1746,102 +1892,43 @@ class _HomePageState extends State<HomePage> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       TextButton(
-                        onPressed: () {
-                          final Map<String, dynamic> resetFilters = {
-                            'search': '',
-                            'title': '',
-                            'address': '',
-                            'monthly_price': '',
-                            'monthly_price_bis': '',
-                            'monthly_price_operation': '',
-                            'area': '',
-                            'area_bis': '',
-                            'area_operation': '',
-                            'rooms_nb': '',
-                            'rooms_nb_bis': '',
-                            'rooms_nb_operation': '',
-                            'bathrooms_nb': '',
-                            'bathrooms_nb_bis': '',
-                            'bathrooms_nb_operation': '',
-                            'living_rooms_nb': '',
-                            'living_rooms_nb_bis': '',
-                            'living_rooms_nb_operation': '',
-                            'compartment_number': '',
-                            'compartment_number_bis': '',
-                            'compartment_number_operation': '',
-                            'status': '',
-                            'water_supply': '',
-                            'electrical_connection': '',
-                            'town_id': '',
-                            'category_property_id': '',
-                            'certified': '',
-                            'has_internal_kitchen': '',
-                            'has_external_kitchen': '',
-                            'has_a_parking': '',
-                            'has_air_conditioning': '',
-                            'has_security_guards': '',
-                            'has_balcony': '',
-                            'order': 'asc',
-                          };
-
-                          _selectedTown = null;
-                          _selectedCategory = null;
-                          
-                          townSearchController.clear();
-                          categorySearchController.clear();
-                          priceMinCtrl.clear();
-                          priceMaxCtrl.clear();
-                          areaMinCtrl.clear();
-                          areaMaxCtrl.clear();
-                          roomsMinCtrl.clear();
-                          roomsMaxCtrl.clear();
-                          bathMinCtrl.clear();
-                          bathMaxCtrl.clear();
-                          
-                          _showTownDropdown = false;
-                          _showCategoryDropdown = false;
-                          _filteredTowns = [];
-                          _filteredCategories = [];
-                          
-                          localFilters.clear();
-                          localFilters.addAll(resetFilters);
-                          
-                          _loadProperties(newFilters: resetFilters, isInitialLoad: true);
-                          
-                          Navigator.of(context).pop();
-                          
-                          setStateBS(() {});
-                        },
+                        onPressed: () => _resetFilters(
+                          context, locale, setStateBS, localFilters,
+                          townSearchController, categorySearchController,
+                          priceMinCtrl, priceMaxCtrl, areaMinCtrl, areaMaxCtrl,
+                          roomsMinCtrl, roomsMaxCtrl, bathMinCtrl, bathMaxCtrl
+                        ),
                         child: Text(AppTranslations.get('reset', locale, 'Réinitialiser')),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
+                  
+                  // Contenu défilable des filtres
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
+                          // Filtre par ville
                           _buildTownFilterSection(
-                            locale, 
-                            setStateBS, 
-                            townSearchController,
-                            localFilters,
+                            locale, setStateBS, townSearchController, localFilters,
                             (query) => _onTownSearchChanged(query, setStateBS),
                             () => _clearTownSelection(setStateBS, localFilters, townSearchController),
                             (town) => _selectTown(town, setStateBS, localFilters, townSearchController)
                           ),
                           
+                          // Filtre par catégorie
                           _buildCategoryFilterSection(
-                            locale, 
-                            setStateBS, 
-                            categorySearchController,
-                            localFilters,
+                            locale, setStateBS, categorySearchController, localFilters,
                             (query) => _onCategorySearchChanged(query, setStateBS),
                             () => _clearCategorySelection(setStateBS, localFilters, categorySearchController),
                             (category) => _selectCategory(category, setStateBS, localFilters, categorySearchController)
                           ),
                           
+                          // Filtre par statut
                           _buildStatusFilterChips(locale, localFilters, setStateBS),
+                          
+                          // Filtres numériques
                           _buildRangeFilterSection(
                             locale: locale,
                             title: AppTranslations.get('monthly_price', locale, 'Prix mensuel'),
@@ -1888,12 +1975,16 @@ class _HomePageState extends State<HomePage> {
                             maxCtrl: bathMaxCtrl,
                             setStateBS: setStateBS,
                           ),
+                          
+                          // Filtre par équipements
                           _buildEquipmentChips(locale, localFilters, setStateBS),
                           const SizedBox(height: 20),
                         ],
                       ),
                     ),
                   ),
+                  
+                  // Boutons d'action
                   Row(
                     children: [
                       Expanded(
@@ -1923,6 +2014,69 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Réinitialise tous les filtres
+  void _resetFilters(
+    BuildContext context,
+    Locale locale,
+    Function setStateBS,
+    Map<String, dynamic> localFilters,
+    TextEditingController townController,
+    TextEditingController categoryController,
+    TextEditingController priceMinCtrl,
+    TextEditingController priceMaxCtrl,
+    TextEditingController areaMinCtrl,
+    TextEditingController areaMaxCtrl,
+    TextEditingController roomsMinCtrl,
+    TextEditingController roomsMaxCtrl,
+    TextEditingController bathMinCtrl,
+    TextEditingController bathMaxCtrl,
+  ) {
+    final Map<String, dynamic> resetFilters = {
+      'search': '', 'title': '', 'address': '',
+      'monthly_price': '', 'monthly_price_bis': '', 'monthly_price_operation': '',
+      'area': '', 'area_bis': '', 'area_operation': '',
+      'rooms_nb': '', 'rooms_nb_bis': '', 'rooms_nb_operation': '',
+      'bathrooms_nb': '', 'bathrooms_nb_bis': '', 'bathrooms_nb_operation': '',
+      'living_rooms_nb': '', 'living_rooms_nb_bis': '', 'living_rooms_nb_operation': '',
+      'compartment_number': '', 'compartment_number_bis': '', 'compartment_number_operation': '',
+      'status': '', 'water_supply': '', 'electrical_connection': '',
+      'town_id': '', 'category_property_id': '', 'certified': '',
+      'has_internal_kitchen': '', 'has_external_kitchen': '', 'has_a_parking': '',
+      'has_air_conditioning': '', 'has_security_guards': '', 'has_balcony': '',
+      'order': 'asc',
+    };
+
+    // Réinitialise l'état local
+    _selectedTown = null;
+    _selectedCategory = null;
+    
+    // Vide tous les contrôleurs
+    townController.clear();
+    categoryController.clear();
+    priceMinCtrl.clear(); priceMaxCtrl.clear();
+    areaMinCtrl.clear(); areaMaxCtrl.clear();
+    roomsMinCtrl.clear(); roomsMaxCtrl.clear();
+    bathMinCtrl.clear(); bathMaxCtrl.clear();
+    
+    // Réinitialise l'UI
+    _showTownDropdown = false;
+    _showCategoryDropdown = false;
+    _filteredTowns = [];
+    _filteredCategories = [];
+    
+    // Applique les filtres reset
+    localFilters.clear();
+    localFilters.addAll(resetFilters);
+    
+    // Recharge les propriétés
+    _loadProperties(newFilters: resetFilters, isInitialLoad: true);
+    
+    // Ferme le bottom sheet
+    Navigator.of(context).pop();
+    setStateBS(() {});
+  }
+
+  /// Section de filtre par ville
   Widget _buildTownFilterSection(
     Locale locale, 
     Function setStateBS, 
@@ -1964,8 +2118,7 @@ class _HomePageState extends State<HomePage> {
                     )
                   : _isSearchingTowns
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 20, height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : null,
@@ -1977,6 +2130,7 @@ class _HomePageState extends State<HomePage> {
             },
             onChanged: onSearchChanged,
           ),
+          // Dropdown des résultats de recherche
           if (_showTownDropdown && _filteredTowns.isNotEmpty)
             Container(
               margin: const EdgeInsets.only(top: 4),
@@ -2005,6 +2159,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Section de filtre par catégorie
   Widget _buildCategoryFilterSection(
     Locale locale, 
     Function setStateBS, 
@@ -2046,8 +2201,7 @@ class _HomePageState extends State<HomePage> {
                     )
                   : _isSearchingCategories
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 20, height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : null,
@@ -2059,6 +2213,7 @@ class _HomePageState extends State<HomePage> {
             },
             onChanged: onSearchChanged,
           ),
+          // Dropdown des résultats de recherche
           if (_showCategoryDropdown && _filteredCategories.isNotEmpty)
             Container(
               margin: const EdgeInsets.only(top: 4),
@@ -2087,6 +2242,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Section de filtre par statut
   Widget _buildStatusFilterChips(Locale locale, Map<String, dynamic> localFilters, Function setStateBS) {
     final statusList = ['', 'free', 'prev_advise', 'busy'];
     final labels = [
@@ -2152,6 +2308,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Section de filtre numérique (prix, surface, etc.)
   Widget _buildRangeFilterSection({
     required Locale locale,
     required String title,
@@ -2187,24 +2344,22 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 10),
+          // Chips d'opération
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _operationChip('',
-                  AppTranslations.get('range', locale, 'Intervalle'), currentOp == '', () {
+              _buildOperationChip('', AppTranslations.get('range', locale, 'Intervalle'), currentOp == '', () {
                 setStateBS(() => localFilters[operationKey] = '');
               }),
-              _operationChip('sup',
-                  AppTranslations.get('greater_than', locale, 'Supérieur à'), currentOp == 'sup', () {
+              _buildOperationChip('sup', AppTranslations.get('greater_than', locale, 'Supérieur à'), currentOp == 'sup', () {
                 setStateBS(() {
                   localFilters[operationKey] = 'sup';
                   localFilters[maxKey] = '';
                   maxCtrl.clear();
                 });
               }),
-              _operationChip('inf',
-                  AppTranslations.get('less_than', locale, 'Inférieur à'), currentOp == 'inf', () {
+              _buildOperationChip('inf', AppTranslations.get('less_than', locale, 'Inférieur à'), currentOp == 'inf', () {
                 setStateBS(() {
                   localFilters[operationKey] = 'inf';
                   localFilters[maxKey] = '';
@@ -2214,6 +2369,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 10),
+          // Champs de saisie
           Row(
             children: [
               Expanded(
@@ -2258,7 +2414,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _operationChip(String value, String label, bool selected, VoidCallback onTap) {
+  /// Chip d'opération pour les filtres numériques
+  Widget _buildOperationChip(String value, String label, bool selected, VoidCallback onTap) {
     return FilterChip(
       label: Text(label),
       selected: selected,
@@ -2269,6 +2426,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Section de filtre par équipements
   Widget _buildEquipmentChips(Locale locale, Map<String, dynamic> localFilters, Function setStateBS) {
     final equipment = [
       {'key': 'has_internal_kitchen', 'label': AppTranslations.get('internal_kitchen', locale, 'Cuisine interne')},
@@ -2333,6 +2491,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Carte de propriété individuelle
   Widget _buildPropertyCard(BuildContext context, Property property) {
     final locale = Provider.of<SettingsProvider>(context).locale;
     final primary = Theme.of(context).colorScheme.primary;
@@ -2340,7 +2499,6 @@ class _HomePageState extends State<HomePage> {
 
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-        // Vérification CORRIGÉE : seulement si active = true
         final isFavorite = authProvider.isPropertyFavorite(property.id);
         
         return GestureDetector(
@@ -2363,15 +2521,16 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Image et badges
                 Stack(
                   children: [
+                    // Image principale
                     ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                       child: Image.network(
                         property.mainImage.startsWith('http')
                             ? property.mainImage
-                            : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible ',
+                            : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible',
                         height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -2379,15 +2538,12 @@ class _HomePageState extends State<HomePage> {
                           height: 200,
                           color: Colors.grey.shade300,
                           alignment: Alignment.center,
-                          child:
-                              const Icon(Icons.image_not_supported, color: Colors.grey),
+                          child: const Icon(Icons.image_not_supported, color: Colors.grey),
                         ),
                       ),
                     ),
                     
-                    // === DISPOSITION AMÉLIORÉE DES BADGES ===
-                    
-                    // Badge Statut (en haut à gauche)
+                    // Badge de statut (gauche)
                     Positioned(
                       top: 12,
                       left: 12,
@@ -2412,14 +2568,14 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     
-                    // === CONTENEUR DROITE POUR TOUS LES BADGES ===
+                    // Badges et actions (droite)
                     Positioned(
                       top: 12,
                       right: 12,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          // Badge Certifié (si applicable)
+                          // Badge certifié
                           if (property.certified) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -2437,15 +2593,15 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 8), // Espace entre les badges
+                            const SizedBox(height: 8),
                           ],
                           
-                          // Badge Propriétaire (si applicable)
+                          // Badge propriétaire
                           if (_canEditProperty(property)) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.9),
+                                color: AppThemes.getCertifiedColor(context),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Row(
@@ -2464,82 +2620,24 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 8), // Espace entre les badges
+                            const SizedBox(height: 8),
                           ],
                           
-                          // ❤️ BOUTON FAVORI - TOUJOURS EN DERNIER
-                          GestureDetector(
-                            onTap: () async {
-                              if (!authProvider.isLoggedIn || _togglingFavoriteId == property.id) {
-                                if (!authProvider.isLoggedIn) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
-                                      backgroundColor: AppThemes.getWarningColor(context),
-                                    ),
-                                  );
-                                }
-                                return;
-                              }
-                              
-                              setState(() => _togglingFavoriteId = property.id);
-                              
-                              try {
-                                await authProvider.toggleFavorite(property.id);
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
-                                    backgroundColor: AppThemes.getErrorColor(context),
-                                  ),
-                                );
-                              } finally {
-                                if (mounted) {
-                                  setState(() => _togglingFavoriteId = null);
-                                }
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.95),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: _togglingFavoriteId == property.id
-                                  ? SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          isFavorite ? Colors.red : Colors.grey,
-                                        ),
-                                      ),
-                                    )
-                                  : Icon(
-                                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                                      color: isFavorite ? Colors.red : Colors.grey,
-                                      size: 18,
-                                    ),
-                            ),
-                          ),
+                          // Bouton favori
+                          _buildFavoriteButton(context, locale, property, isFavorite, authProvider),
                         ],
                       ),
                     ),
                   ],
                 ),
+                
+                // Informations de la propriété
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Catégorie et ville
                       Row(
                         children: [
                           Expanded(
@@ -2554,27 +2652,32 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       const SizedBox(height: 6),
+                      // Titre
                       Text(property.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 10),
+                      // Caractéristiques
                       Row(
                         children: [
-                          _pill(Icons.square_foot, '${property.area} m²'),
+                          _buildInfoPill(Icons.square_foot, '${property.area} m²'),
                           const SizedBox(width: 8),
-                          _pill(Icons.bed, '${property.roomsNb} pcs'),
+                          _buildInfoPill(Icons.bed, '${property.roomsNb} pcs'),
                           const SizedBox(width: 8),
-                          _pill(Icons.bathtub, '${property.bathroomsNb} bains'),
+                          _buildInfoPill(Icons.bathtub, '${property.bathroomsNb} bains'),
                         ],
                       ),
                       const SizedBox(height: 12),
+                      // Prix et flèche
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
+                            '${property.monthlyPrice.toString().replaceAllMapped(
+                              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+                              (Match m) => '${m[1]} ')} XOF / mois',
                             style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
@@ -2595,7 +2698,75 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _pill(IconData icon, String label) {
+  /// Bouton favori avec état de chargement
+  Widget _buildFavoriteButton(BuildContext context, Locale locale, Property property, 
+      bool isFavorite, AuthProvider authProvider) {
+    return GestureDetector(
+      onTap: () async {
+        if (!authProvider.isLoggedIn || _togglingFavoriteId == property.id) {
+          if (!authProvider.isLoggedIn) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
+                backgroundColor: AppThemes.getWarningColor(context),
+              ),
+            );
+          }
+          return;
+        }
+        
+        setState(() => _togglingFavoriteId = property.id);
+        
+        try {
+          await authProvider.toggleFavorite(property.id);
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
+              backgroundColor: AppThemes.getErrorColor(context),
+            ),
+          );
+        } finally {
+          if (mounted) {
+            setState(() => _togglingFavoriteId = null);
+          }
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: _togglingFavoriteId == property.id
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isFavorite ? Colors.red : Colors.grey,
+                  ),
+                ),
+              )
+            : Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : Colors.grey,
+                size: 18,
+              ),
+      ),
+    );
+  }
+
+  /// Pill d'information (surface, chambres, etc.)
+  Widget _buildInfoPill(IconData icon, String label) {
     final accent = Theme.of(context).colorScheme.secondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -2614,6 +2785,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Indicateur de chargement en bas de liste
   Widget _buildBottomLoader() {
     if (_isPaginating) {
       return const Padding(
@@ -2635,15 +2807,23 @@ class _HomePageState extends State<HomePage> {
     return const SizedBox.shrink();
   }
 
+  // ==================================================================
+  // BUILD PRINCIPAL
+  // ==================================================================
+  
   @override
   Widget build(BuildContext context) {
     final locale = Provider.of<SettingsProvider>(context).locale;
+    
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () => _loadProperties(isInitialLoad: true),
         child: Column(
           children: [
+            // Barre de recherche
             _buildSearchBar(context, locale),
+            
+            // Liste des propriétés
             Expanded(
               child: _isLoading && _properties.isEmpty
                   ? const Center(child: CircularProgressIndicator())
@@ -2661,8 +2841,7 @@ class _HomePageState extends State<HomePage> {
                                 if (index == _properties.length) {
                                   return _buildBottomLoader();
                                 }
-                                return _buildPropertyCard(
-                                    context, _properties[index]);
+                                return _buildPropertyCard(context, _properties[index]);
                               },
                             ),
             ),

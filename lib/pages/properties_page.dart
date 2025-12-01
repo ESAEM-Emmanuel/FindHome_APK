@@ -1,488 +1,4 @@
 // // lib/pages/properties_page.dart
-
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import 'dart:ui'; // Import nécessaire pour 'Locale'
-
-// import '../services/property_service.dart';
-// import '../models/property_model.dart';
-// import '../providers/settings_provider.dart';
-// import '../providers/auth_provider.dart';
-// import '../constants/app_translations.dart';
-// import '../constants/app_themes.dart'; // Pour accentOrange
-// import 'create_property_page.dart';
-
-// class PropertiesPage extends StatefulWidget {
-//   const PropertiesPage({super.key});
-
-//   @override
-//   State<PropertiesPage> createState() => _PropertiesPageState();
-// }
-
-// class _PropertiesPageState extends State<PropertiesPage> {
-//   final PropertyService _propertyService = PropertyService();
-//   final ScrollController _scrollController = ScrollController();
-//   final TextEditingController _searchController = TextEditingController();
-
-//   List<Property> _properties = [];
-//   bool _isLoading = true;
-//   bool _isPaginating = false;
-//   bool _hasMoreData = true;
-//   String? _errorMessage;
-//   int _currentPage = 1;
-//   final int _limit = 10;
-//   String _currentSearchQuery = '';
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       _loadProperties(isInitialLoad: true);
-//     });
-    
-//     _scrollController.addListener(_scrollListener);
-//   }
-
-//   void _scrollListener() {
-//     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8 &&
-//         !_isLoading && 
-//         !_isPaginating && 
-//         _hasMoreData) 
-//     {
-//       _loadProperties(isPaginating: true);
-//     }
-//   }
-
-//   @override
-//   void dispose() {
-//     _scrollController.removeListener(_scrollListener);
-//     _scrollController.dispose();
-//     _searchController.dispose();
-//     super.dispose();
-//   }
-
-//   Future<void> _loadProperties({
-//     bool isInitialLoad = false,
-//     bool isPaginating = false,
-//     String? newQuery,
-//   }) async {
-//     if (!mounted) return;
-
-//     final bool isNewSearch = newQuery != null;
-//     final bool shouldReset = isInitialLoad || isNewSearch || !isPaginating;
-    
-//     final int nextPage = shouldReset ? 1 : _currentPage + 1;
-//     final String effectiveQuery = newQuery ?? _currentSearchQuery;
-
-//     setState(() {
-//       if (shouldReset) {
-//         _properties = [];
-//         _currentPage = 1;
-//         _isLoading = true;
-//         _hasMoreData = true;
-//       } else {
-//         _isPaginating = true;
-//         _currentPage = nextPage;
-//       }
-//       _currentSearchQuery = effectiveQuery;
-//       _errorMessage = null;
-//     });
-    
-//     try {
-//       final response = await _propertyService.getProperties(
-//         page: nextPage,
-//         limit: _limit,
-//         search: effectiveQuery,
-//       );
-      
-//       if (mounted) {
-//         setState(() {
-//           _properties.addAll(response.records);
-//           _hasMoreData = response.currentPage < response.totalPages;
-//           _isLoading = false;
-//           _isPaginating = false;
-//         });
-//       }
-//     } catch (e) {
-//       print('ERREUR API DÉTAILLÉE: $e');
-//       if (mounted) {
-//         String message = AppTranslations.get('data_loading_error', const Locale('fr'), 'Erreur de chargement des données.');
-//         if (e.toString().contains('Connection refused') || e.toString().contains('host lookup')) {
-//              message = AppTranslations.get('api_connection_error', const Locale('fr'), 'Impossible de se connecter à l\'API. Vérifiez l\'adresse du serveur.');
-//         } else if (e.toString().contains('Exception: Échec du chargement')) {
-//              message = e.toString().substring(e.toString().indexOf(':') + 1).trim();
-//         }
-
-//         setState(() {
-//           _errorMessage = message;
-//           _isLoading = false;
-//           _isPaginating = false;
-//           if (isPaginating) _currentPage--;
-//         });
-//       }
-//     }
-//   }
-
-//   // Dialogue de détail d'une propriété
-//   Future<void> _showPropertyDetailDialog(Property property) async {
-//     final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
-//     final Color primaryColor = Theme.of(context).primaryColor;
-//     final Color accentColor = Theme.of(context).colorScheme.secondary;
-
-//     return showDialog(
-//       context: context,
-//       barrierDismissible: true,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-//           title: Text(
-//             property.title,
-//             style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
-//           ),
-//           content: SingleChildScrollView(
-//             child: Column(
-//               mainAxisSize: MainAxisSize.min,
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: <Widget>[
-//                 // Image principale
-//                 ClipRRect(
-//                   borderRadius: BorderRadius.circular(12),
-//                   child: Image.network(
-//                     property.mainImage.startsWith('http') ? property.mainImage : 'https://via.placeholder.com/400x300.png?text=Image+Indisponible',
-//                     height: 200,
-//                     width: double.infinity,
-//                     fit: BoxFit.cover,
-//                     errorBuilder: (context, error, stackTrace) => Container(
-//                       height: 200,
-//                       color: Colors.grey.shade300,
-//                       alignment: Alignment.center,
-//                       child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 16),
-
-//                 // Détails stylisés
-//                 _buildDetailRow(
-//                   icon: Icons.location_city_outlined,
-//                   label: AppTranslations.get('category', locale, 'Catégorie'),
-//                   value: property.category.name,
-//                   iconColor: primaryColor,
-//                 ),
-//                 _buildDetailRow(
-//                   icon: Icons.location_on_outlined,
-//                   label: AppTranslations.get('town', locale, 'Ville'),
-//                   value: property.town.name,
-//                   iconColor: primaryColor,
-//                 ),
-//                 _buildDetailRow(
-//                   icon: Icons.square_foot,
-//                   label: AppTranslations.get('area', locale, 'Surface'),
-//                   value: '${property.area} m²',
-//                   iconColor: primaryColor,
-//                 ),
-//                 _buildDetailRow(
-//                   icon: Icons.bed_outlined,
-//                   label: AppTranslations.get('rooms', locale, 'Pièces'),
-//                   value: '${property.roomsNb} Pièces',
-//                   iconColor: primaryColor,
-//                 ),
-//                 _buildDetailRow(
-//                   icon: Icons.bathtub_outlined,
-//                   label: AppTranslations.get('bathrooms', locale, 'Salles de bain'),
-//                   value: '${property.bathroomsNb} Salles de bain',
-//                   iconColor: primaryColor,
-//                 ),
-
-//                 const SizedBox(height: 16),
-//                 // Prix
-//                 Container(
-//                   padding: const EdgeInsets.all(12),
-//                   decoration: BoxDecoration(
-//                     color: primaryColor.withOpacity(0.1),
-//                     borderRadius: BorderRadius.circular(12),
-//                   ),
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(
-//                         AppTranslations.get('monthly_price', locale, 'Prix mensuel'),
-//                         style: const TextStyle(fontWeight: FontWeight.bold),
-//                       ),
-//                       Text(
-//                         '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF',
-//                         style: TextStyle(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.w900,
-//                           color: primaryColor,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           actions: <Widget>[
-//             // Bouton fermer
-//             TextButton(
-//               onPressed: () {
-//                 Navigator.of(context).pop();
-//               },
-//               child: Text(
-//                 AppTranslations.get('close', locale, 'Fermer'),
-//                 style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-//               ),
-//             ),
-            
-//             // Bouton voir détails
-//             ElevatedButton.icon(
-//               onPressed: () {
-//                 Navigator.of(context).pop();
-//                 Navigator.of(context).pushNamed(
-//                   '/property-detail',
-//                   arguments: {'id': property.id},
-//                 );
-//               },
-//               icon: const Icon(Icons.visibility_outlined, size: 20),
-//               label: Text(AppTranslations.get('view_details', locale, 'Voir détails')),
-//               style: ElevatedButton.styleFrom(
-//                 backgroundColor: accentColor,
-//                 foregroundColor: Colors.white,
-//                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-//               ),
-//             ),
-//           ],
-//           actionsAlignment: MainAxisAlignment.end,
-//         );
-//       },
-//     );
-//   }
-
-//   // Widget utilitaire pour les détails
-//   Widget _buildDetailRow({required IconData icon, required String label, required String value, required Color iconColor}) {
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(vertical: 8.0),
-//       child: Row(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Icon(icon, color: iconColor, size: 24),
-//           const SizedBox(width: 10),
-//           Expanded(
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   label,
-//                   style: const TextStyle(fontSize: 12, color: Colors.grey),
-//                 ),
-//                 const SizedBox(height: 2),
-//                 Text(
-//                   value,
-//                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   // Dialogue pour ajouter une propriété
-//   // Dans lib/pages/properties_page.dart
-
-// Future<void> _showAddPropertyDialog() async {
-//   final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
-//   final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-//   // Vérifier si l'utilisateur est connecté
-//   if (authProvider.accessToken == null) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(
-//         content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter une propriété.')),
-//         backgroundColor: AppThemes.getWarningColor(context),
-//       ),
-//     );
-//     return;
-//   }
-
-//   // Naviguer vers la page de création
-//   Navigator.of(context).push(
-//     MaterialPageRoute(
-//       builder: (context) => const CreatePropertyPage(),
-//     ),
-//   ).then((_) {
-//     // Recharger les propriétés après la création
-//     _loadProperties(isInitialLoad: true);
-//   });
-// }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final locale = Provider.of<SettingsProvider>(context).locale;
-//     final Color accentColor = Theme.of(context).colorScheme.secondary;
-//     final Color primaryColor = Theme.of(context).primaryColor;
-
-//     return Scaffold(
-//       body: _isLoading && _properties.isEmpty
-//           ? const Center(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   CircularProgressIndicator(),
-//                   SizedBox(height: 16),
-//                   Text('Chargement des propriétés...'),
-//                 ],
-//               ),
-//             )
-//           : _errorMessage != null
-//               ? Center(
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Icon(
-//                         Icons.error_outline,
-//                         size: 50,
-//                         color: Theme.of(context).colorScheme.error,
-//                       ),
-//                       const SizedBox(height: 16),
-//                       Text(
-//                         AppTranslations.get('error', locale, 'Erreur'),
-//                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-//                           color: Theme.of(context).colorScheme.error,
-//                         ),
-//                       ),
-//                       const SizedBox(height: 8),
-//                       Padding(
-//                         padding: const EdgeInsets.symmetric(horizontal: 40.0),
-//                         child: Text(
-//                           _errorMessage!,
-//                           textAlign: TextAlign.center,
-//                           style: TextStyle(
-//                             fontSize: 16,
-//                             color: Theme.of(context).hintColor,
-//                           ),
-//                         ),
-//                       ),
-//                       const SizedBox(height: 20),
-//                       ElevatedButton.icon(
-//                         onPressed: () => _loadProperties(isInitialLoad: true),
-//                         icon: const Icon(Icons.refresh),
-//                         label: Text(AppTranslations.get('retry', locale, 'Réessayer')),
-//                       ),
-//                     ],
-//                   ),
-//                 )
-//               : _properties.isEmpty
-//                   ? Center(
-//                       child: Column(
-//                         mainAxisAlignment: MainAxisAlignment.center,
-//                         children: [
-//                           Icon(
-//                             Icons.home_work_outlined,
-//                             size: 60,
-//                             color: Theme.of(context).hintColor,
-//                           ),
-//                           const SizedBox(height: 16),
-//                           Text(
-//                             _currentSearchQuery.isNotEmpty
-//                                 ? AppTranslations.get('no_search_results', locale, 'Aucun résultat trouvé pour votre recherche.')
-//                                 : AppTranslations.get('no_properties', locale, 'Aucune propriété trouvée pour l\'instant.'),
-//                             style: TextStyle(
-//                               fontSize: 16,
-//                               color: Theme.of(context).hintColor,
-//                             ),
-//                             textAlign: TextAlign.center,
-//                           ),
-//                         ],
-//                       ),
-//                     )
-//                   : ListView.builder(
-//                       controller: _scrollController,
-//                       padding: const EdgeInsets.only(top: 8.0, bottom: 80.0),
-//                       itemCount: _properties.length + 1,
-//                       itemBuilder: (context, index) {
-//                         if (index == _properties.length) {
-//                           return _isPaginating
-//                               ? const Padding(
-//                                   padding: EdgeInsets.all(16.0),
-//                                   child: Center(child: CircularProgressIndicator()),
-//                                 )
-//                               : !_hasMoreData
-//                                   ? Padding(
-//                                       padding: const EdgeInsets.only(top: 16.0, bottom: 32.0),
-//                                       child: Text(
-//                                         AppTranslations.get('end_of_list', locale, 'Fin de la liste des propriétés.'),
-//                                         textAlign: TextAlign.center,
-//                                         style: TextStyle(color: Colors.grey[600]),
-//                                       ),
-//                                     )
-//                                   : const SizedBox.shrink();
-//                         }
-
-//                         final property = _properties[index];
-//                         return Padding(
-//                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-//                           child: Card(
-//                             elevation: 2,
-//                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//                             child: ListTile(
-//                               leading: ClipRRect(
-//                                 borderRadius: BorderRadius.circular(8),
-//                                 child: Image.network(
-//                                   property.mainImage.startsWith('http') ? property.mainImage : 'https://via.placeholder.com/100x100.png?text=Image',
-//                                   width: 60,
-//                                   height: 60,
-//                                   fit: BoxFit.cover,
-//                                   errorBuilder: (context, error, stackTrace) => Container(
-//                                     width: 60,
-//                                     height: 60,
-//                                     color: Colors.grey.shade300,
-//                                     alignment: Alignment.center,
-//                                     child: const Icon(Icons.home, color: Colors.grey),
-//                                   ),
-//                                 ),
-//                               ),
-//                               title: Text(
-//                                 property.title,
-//                                 maxLines: 1,
-//                                 overflow: TextOverflow.ellipsis,
-//                                 style: const TextStyle(fontWeight: FontWeight.bold),
-//                               ),
-//                               subtitle: Column(
-//                                 crossAxisAlignment: CrossAxisAlignment.start,
-//                                 children: [
-//                                   const SizedBox(height: 4),
-//                                   Text(
-//                                     '${property.category.name} - ${property.town.name}',
-//                                     style: const TextStyle(color: Colors.black54),
-//                                   ),
-//                                   Text(
-//                                     '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF/mois',
-//                                     style: TextStyle(color: accentColor, fontSize: 12, fontWeight: FontWeight.w600),
-//                                   ),
-//                                 ],
-//                               ),
-//                               trailing: IconButton(
-//                                 onPressed: () => _showPropertyDetailDialog(property),
-//                                 icon: Icon(Icons.arrow_forward_ios, size: 18, color: primaryColor),
-//                               ),
-//                               onTap: () => _showPropertyDetailDialog(property),
-//                             ),
-//                           ),
-//                         );
-//                       },
-//                     ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: _showAddPropertyDialog,
-//         backgroundColor: accentOrange,
-//         child: const Icon(Icons.add, color: Colors.white),
-//       ),
-//     );
-//   }
-// }
-// // lib/pages/properties_page.dart
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 // import '../services/property_service.dart';
@@ -542,6 +58,33 @@
 //   }
 
 //   // =========================================================
+//   //  VÉRIFICATION DES PERMISSIONS
+//   // =========================================================
+  
+//   // Vérifie si l'utilisateur peut créer des propriétés
+//   bool _canCreateProperty(AuthProvider authProvider) {
+//     final user = authProvider.currentUser;
+//     if (user == null) return false;
+    
+//     final isAdmin = user.role == 'admin';
+//     final isOwner = user.role == 'owner';
+//     final isStaff = user.isStaff == true;
+    
+//     return isAdmin || isOwner || isStaff;
+//   }
+  
+//   // Vérifie si l'utilisateur peut voir toutes les propriétés
+//   bool _canViewAllProperties(AuthProvider authProvider) {
+//     final user = authProvider.currentUser;
+//     if (user == null) return false;
+    
+//     final isAdmin = user.role == 'admin';
+//     final isStaff = user.isStaff == true;
+    
+//     return isAdmin || isStaff;
+//   }
+
+//   // =========================================================
 //   //  CHARGEMENT DES PROPRIÉTÉS SELON LE RÔLE
 //   // =========================================================
 //   Future<void> _loadProperties({
@@ -553,7 +96,8 @@
 
 //     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 //     final user = authProvider.currentUser;
-//     final isAdmin = user?.isStaff ?? false;
+    
+//     final bool canViewAll = _canViewAllProperties(authProvider);
 
 //     final bool isNewSearch = newQuery != null;
 //     final bool shouldReset = isInitialLoad || isNewSearch || !isPaginating;
@@ -581,8 +125,8 @@
 //         if (effectiveQuery.isNotEmpty) 'search': effectiveQuery,
 //       };
 
-//       // Si NON admin → filtrer par propriétaire
-//       if (!isAdmin && user != null) {
+//       // Si l'utilisateur n'est pas admin/staff, on filtre par ses propriétés
+//       if (!canViewAll && user != null) {
 //         filters['owner_id'] = user.id;
 //       }
 
@@ -609,7 +153,7 @@
 //   }
 
 //   // =========================================================
-//   //  AJOUTER UNE PROPRIÉTÉ (bouton flottant)
+//   //  AJOUTER UNE PROPRIÉTÉ
 //   // =========================================================
 //   Future<void> _showAddPropertyDialog() async {
 //     final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
@@ -626,16 +170,50 @@
 //       return;
 //     }
 
+//     // Vérification des permissions
+//     if (!_canCreateProperty(authProvider)) {
+//       final user = authProvider.currentUser;
+      
+//       if (user?.role == 'user') {
+//         // Message spécifique pour les utilisateurs normaux
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: Text(AppTranslations.get(
+//                 'user_cannot_create', 
+//                 locale, 
+//                 'Vous devez faire une demande pour obtenir le privilège de créer des propriétés sur notre plateforme.')),
+//             backgroundColor: AppThemes.getWarningColor(context),
+//             duration: const Duration(seconds: 5),
+//           ),
+//         );
+//       } else {
+//         // Message générique pour les autres cas
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: Text(AppTranslations.get(
+//                 'no_permission_create', 
+//                 locale, 
+//                 'Vous n\'avez pas la permission de créer des propriétés.')),
+//             backgroundColor: AppThemes.getErrorColor(context),
+//           ),
+//         );
+//       }
+//       return;
+//     }
+
 //     Navigator.of(context)
 //         .push(MaterialPageRoute(builder: (_) => const CreatePropertyPage()))
 //         .then((_) => _loadProperties(isInitialLoad: true));
 //   }
 
 //   // =========================================================
-//   //  UI MODERNE
+//   //  UI – LISTVIEW MODERNE 2025 (sans Card)
 //   // =========================================================
 //   Widget _buildSearchBar(BuildContext context, Locale locale) {
+//     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+//     final canCreate = _canCreateProperty(authProvider);
 //     final accent = Theme.of(context).colorScheme.secondary;
+    
 //     return Padding(
 //       padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
 //       child: Row(
@@ -666,25 +244,27 @@
 //               ),
 //             ),
 //           ),
-//           const SizedBox(width: 10),
-//           Material(
-//             color: accent,
-//             borderRadius: BorderRadius.circular(30),
-//             child: InkWell(
-//               borderRadius: BorderRadius.circular(30),
-//               onTap: _showAddPropertyDialog,
-//               child: const Padding(
-//                 padding: EdgeInsets.all(12),
-//                 child: Icon(Icons.add, color: Colors.white),
-//               ),
-//             ),
-//           ),
+//           // if (canCreate) ...[
+//           //   const SizedBox(width: 10),
+//           //   Material(
+//           //     color: accent,
+//           //     borderRadius: BorderRadius.circular(30),
+//           //     child: InkWell(
+//           //       borderRadius: BorderRadius.circular(30),
+//           //       onTap: _showAddPropertyDialog,
+//           //       child: const Padding(
+//           //         padding: EdgeInsets.all(12),
+//           //         child: Icon(Icons.add, color: Colors.white),
+//           //       ),
+//           //     ),
+//           //   ),
+//           // ],
 //         ],
 //       ),
 //     );
 //   }
 
-//   Widget _buildPropertyCard(BuildContext context, Property property) {
+//   Widget _buildPropertyItem(BuildContext context, Property property) {
 //     final locale = Provider.of<SettingsProvider>(context).locale;
 //     final primary = Theme.of(context).colorScheme.primary;
 //     final accent = Theme.of(context).colorScheme.secondary;
@@ -917,6 +497,9 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     final locale = Provider.of<SettingsProvider>(context).locale;
+//     final authProvider = Provider.of<AuthProvider>(context);
+//     final canCreate = _canCreateProperty(authProvider);
+    
 //     return Scaffold(
 //       body: RefreshIndicator(
 //         onRefresh: () => _loadProperties(isInitialLoad: true),
@@ -940,7 +523,7 @@
 //                                 if (index == _properties.length) {
 //                                   return _buildBottomLoader();
 //                                 }
-//                                 return _buildPropertyCard(
+//                                 return _buildPropertyItem(
 //                                     context, _properties[index]);
 //                               },
 //                             ),
@@ -948,11 +531,13 @@
 //           ],
 //         ),
 //       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: _showAddPropertyDialog,
-//         backgroundColor: Theme.of(context).colorScheme.secondary,
-//         child: const Icon(Icons.add, color: Colors.white),
-//       ),
+//       floatingActionButton: canCreate
+//           ? FloatingActionButton(
+//               onPressed: _showAddPropertyDialog,
+//               backgroundColor: Theme.of(context).colorScheme.secondary,
+//               child: const Icon(Icons.add, color: Colors.white),
+//             )
+//           : null,
 //     );
 //   }
 // }
@@ -968,6 +553,14 @@ import '../constants/app_translations.dart';
 import '../constants/app_themes.dart';
 import 'create_property_page.dart';
 
+// ====================================================================
+// PAGE DES PROPRIÉTÉS DE L'UTILISATEUR
+// ====================================================================
+/// Page affichant les propriétés de l'utilisateur connecté avec :
+/// - Gestion des permissions par rôle (admin, owner, staff, user)
+/// - Recherche et pagination
+/// - Interface moderne avec badges de statut
+/// - Bouton flottant conditionnel pour l'ajout de propriétés
 class PropertiesPage extends StatefulWidget {
   const PropertiesPage({super.key});
 
@@ -976,10 +569,16 @@ class PropertiesPage extends StatefulWidget {
 }
 
 class _PropertiesPageState extends State<PropertiesPage> {
+  // ==================================================================
+  // SERVICES ET CONTRÔLEURS
+  // ==================================================================
   final PropertyService _propertyService = PropertyService();
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
+  // ==================================================================
+  // ÉTAT DE LA PAGE
+  // ==================================================================
   List<Property> _properties = [];
   bool _isLoading = true;
   bool _isPaginating = false;
@@ -989,23 +588,18 @@ class _PropertiesPageState extends State<PropertiesPage> {
   final int _limit = 10;
   String _currentSearchQuery = '';
 
+  // ==================================================================
+  // LIFECYCLE METHODS
+  // ==================================================================
+  
   @override
   void initState() {
     super.initState();
+    // Charge les propriétés après le premier rendu
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProperties(isInitialLoad: true);
     });
     _scrollController.addListener(_scrollListener);
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent * 0.8 &&
-        !_isLoading &&
-        !_isPaginating &&
-        _hasMoreData) {
-      _loadProperties(isPaginating: true);
-    }
   }
 
   @override
@@ -1016,9 +610,60 @@ class _PropertiesPageState extends State<PropertiesPage> {
     super.dispose();
   }
 
-  // =========================================================
-  //  CHARGEMENT DES PROPRIÉTÉS SELON LE RÔLE
-  // =========================================================
+  // ==================================================================
+  // GESTION DE LA PAGINATION
+  // ==================================================================
+  
+  /// Écoute le défilement pour charger plus de données
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent * 0.8 &&
+        !_isLoading &&
+        !_isPaginating &&
+        _hasMoreData) {
+      _loadProperties(isPaginating: true);
+    }
+  }
+
+  // ==================================================================
+  // VÉRIFICATION DES PERMISSIONS
+  // ==================================================================
+  
+  /// Vérifie si l'utilisateur peut créer des propriétés
+  /// - Admin, Owner et Staff peuvent créer
+  /// - Les Users normaux ne peuvent pas créer
+  bool _canCreateProperty(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return false;
+    
+    final isAdmin = user.role == 'admin';
+    final isOwner = user.role == 'owner';
+    final isStaff = user.isStaff == true;
+    
+    return isAdmin || isOwner || isStaff;
+  }
+  
+  /// Vérifie si l'utilisateur peut voir toutes les propriétés
+  /// - Admin et Staff voient toutes les propriétés
+  /// - Owner et User ne voient que leurs propres propriétés
+  bool _canViewAllProperties(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return false;
+    
+    final isAdmin = user.role == 'admin';
+    final isStaff = user.isStaff == true;
+    
+    return isAdmin || isStaff;
+  }
+
+  // ==================================================================
+  // MÉTHODES DE GESTION DES DONNÉES
+  // ==================================================================
+  
+  /// Charge les propriétés selon le rôle de l'utilisateur
+  /// [isInitialLoad] : true pour recharger depuis le début
+  /// [isPaginating] : true pour charger la page suivante
+  /// [newQuery] : nouvelle requête de recherche
   Future<void> _loadProperties({
     bool isInitialLoad = false,
     bool isPaginating = false,
@@ -1028,13 +673,15 @@ class _PropertiesPageState extends State<PropertiesPage> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.currentUser;
-    final isAdmin = user?.isStaff ?? false;
+    final bool canViewAll = _canViewAllProperties(authProvider);
 
+    // Détermine le comportement de chargement
     final bool isNewSearch = newQuery != null;
     final bool shouldReset = isInitialLoad || isNewSearch || !isPaginating;
     final int nextPage = shouldReset ? 1 : _currentPage + 1;
     final String effectiveQuery = newQuery ?? _currentSearchQuery;
 
+    // Met à jour l'état de l'interface
     setState(() {
       if (shouldReset) {
         _properties = [];
@@ -1050,16 +697,19 @@ class _PropertiesPageState extends State<PropertiesPage> {
     });
 
     try {
+      // Construction des paramètres de requête
       Map<String, dynamic> filters = {
         'page': nextPage,
         'limit': _limit,
         if (effectiveQuery.isNotEmpty) 'search': effectiveQuery,
       };
 
-      if (!isAdmin && user != null) {
+      // Filtrage par propriétaire si l'utilisateur n'est pas admin/staff
+      if (!canViewAll && user != null) {
         filters['owner_id'] = user.id;
       }
 
+      // Appel API
       final response = await _propertyService.getPropertiesWithFilters(filters);
 
       if (mounted) {
@@ -1082,38 +732,120 @@ class _PropertiesPageState extends State<PropertiesPage> {
     }
   }
 
-  // =========================================================
-  //  AJOUTER UNE PROPRIÉTÉ
-  // =========================================================
+  // ==================================================================
+  // GESTION DE LA CRÉATION DE PROPRIÉTÉS
+  // ==================================================================
+  
+  /// Affiche le dialogue d'ajout de propriété avec vérification des permissions
   Future<void> _showAddPropertyDialog() async {
     final locale = Provider.of<SettingsProvider>(context, listen: false).locale;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+    // Vérification de la connexion
     if (authProvider.accessToken == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppTranslations.get(
-              'login_required', locale, 'Veuillez vous connecter pour ajouter une propriété.')),
-          backgroundColor: AppThemes.getWarningColor(context),
-        ),
+      _showSnackBar(
+        AppTranslations.get('login_required', locale, 
+            'Veuillez vous connecter pour ajouter une propriété.'),
+        AppThemes.getWarningColor(context),
       );
       return;
     }
 
+    // Vérification des permissions
+    if (!_canCreateProperty(authProvider)) {
+      _handleNoPermission(authProvider, locale);
+      return;
+    }
+
+    // Navigation vers la page de création
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => const CreatePropertyPage()))
         .then((_) => _loadProperties(isInitialLoad: true));
   }
 
-  // =========================================================
-  //  UI – LISTVIEW MODERNE 2025 (sans Card)
-  // =========================================================
+  /// Gère l'affichage des messages d'erreur de permission
+  void _handleNoPermission(AuthProvider authProvider, Locale locale) {
+    final user = authProvider.currentUser;
+    
+    if (user?.role == 'user') {
+      // Message spécifique pour les utilisateurs normaux
+      _showSnackBar(
+        AppTranslations.get('user_cannot_create', locale, 
+            'Vous devez faire une demande pour obtenir le privilège de créer des propriétés sur notre plateforme.'),
+        AppThemes.getWarningColor(context),
+        duration: const Duration(seconds: 5),
+      );
+    } else {
+      // Message générique pour les autres cas
+      _showSnackBar(
+        AppTranslations.get('no_permission_create', locale, 
+            'Vous n\'avez pas la permission de créer des propriétés.'),
+        AppThemes.getErrorColor(context),
+      );
+    }
+  }
+
+  /// Affiche un SnackBar avec les paramètres donnés
+  void _showSnackBar(String message, Color backgroundColor, 
+      {Duration duration = const Duration(seconds: 3)}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: duration,
+      ),
+    );
+  }
+
+  // ==================================================================
+  // MÉTHODES D'UTILITÉ
+  // ==================================================================
+  
+  /// Retourne la couleur associée au statut de la propriété
+  Color _getStatusColor(BuildContext context, String status) {
+    switch (status) {
+      case 'free': return AppThemes.getSuccessColor(context);
+      case 'busy': return AppThemes.getErrorColor(context);
+      case 'prev_advise': return AppThemes.getWarningColor(context);
+      default: return Colors.grey;
+    }
+  }
+
+  /// Retourne l'icône associée au statut de la propriété
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'free': return Icons.check_circle;
+      case 'busy': return Icons.do_not_disturb;
+      case 'prev_advise': return Icons.access_time;
+      default: return Icons.help_outline;
+    }
+  }
+
+  /// Retourne la traduction du statut de la propriété
+  String _getStatusTranslation(Locale locale, String status) {
+    final translations = {
+      'free': AppTranslations.get('status_free', locale, 'Libre'),
+      'busy': AppTranslations.get('status_busy', locale, 'Occupé'),
+      'prev_advise': AppTranslations.get('status_prev_advise', locale, 'Préavis'),
+    };
+    return translations[status] ?? status;
+  }
+
+  // ==================================================================
+  // WIDGETS DE L'INTERFACE UTILISATEUR
+  // ==================================================================
+
+  /// Barre de recherche avec gestion des permissions d'ajout
   Widget _buildSearchBar(BuildContext context, Locale locale) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final canCreate = _canCreateProperty(authProvider);
     final accent = Theme.of(context).colorScheme.secondary;
+    
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
       child: Row(
         children: [
+          // Champ de recherche
           Expanded(
             child: TextField(
               controller: _searchController,
@@ -1135,29 +867,32 @@ class _PropertiesPageState extends State<PropertiesPage> {
                 ),
                 filled: true,
                 fillColor: Theme.of(context).cardColor,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          Material(
-            color: accent,
-            borderRadius: BorderRadius.circular(30),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(30),
-              onTap: _showAddPropertyDialog,
-              child: const Padding(
-                padding: EdgeInsets.all(12),
-                child: Icon(Icons.add, color: Colors.white),
-              ),
-            ),
-          ),
+          // Bouton d'ajout conditionnel (actuellement commenté)
+          // if (canCreate) ...[
+          //   const SizedBox(width: 10),
+          //   Material(
+          //     color: accent,
+          //     borderRadius: BorderRadius.circular(30),
+          //     child: InkWell(
+          //       borderRadius: BorderRadius.circular(30),
+          //       onTap: _showAddPropertyDialog,
+          //       child: const Padding(
+          //         padding: EdgeInsets.all(12),
+          //         child: Icon(Icons.add, color: Colors.white),
+          //       ),
+          //     ),
+          //   ),
+          // ],
         ],
       ),
     );
   }
 
+  /// Carte individuelle d'une propriété
   Widget _buildPropertyItem(BuildContext context, Property property) {
     final locale = Provider.of<SettingsProvider>(context).locale;
     final primary = Theme.of(context).colorScheme.primary;
@@ -1183,137 +918,158 @@ class _PropertiesPageState extends State<PropertiesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image + badges
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.network(
-                    property.mainImage.startsWith('http')
-                        ? property.mainImage
-                        : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible',
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 200,
-                      color: Colors.grey.shade300,
-                      alignment: Alignment.center,
-                      child:
-                          const Icon(Icons.image_not_supported, color: Colors.grey),
-                    ),
-                  ),
-                ),
-                if (property.certified)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppThemes.getCertifiedColor(context),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.verified, size: 14, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text('Certifié',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(context, property.status),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(_getStatusIcon(property.status),
-                            size: 14, color: Colors.white),
-                        const SizedBox(width: 4),
-                        Text(_getStatusTranslation(locale, property.status),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${property.category.name.toUpperCase()}  •  ${property.town.name}',
-                          style: TextStyle(
-                              color: accent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(property.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _pill(Icons.square_foot, '${property.area} m²'),
-                      const SizedBox(width: 8),
-                      _pill(Icons.bed, '${property.roomsNb} pcs'),
-                      const SizedBox(width: 8),
-                      _pill(Icons.bathtub, '${property.bathroomsNb} bains'),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: primary),
-                      ),
-                      Icon(Icons.arrow_forward_ios,
-                          size: 16, color: accent.withOpacity(.6)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // Section image avec badges
+            _buildPropertyImageSection(property, locale),
+            
+            // Section informations
+            _buildPropertyInfoSection(property, primary, accent),
           ],
         ),
       ),
     );
   }
 
-  Widget _pill(IconData icon, String label) {
+  /// Section image avec badges de statut et certification
+  Widget _buildPropertyImageSection(Property property, Locale locale) {
+    return Stack(
+      children: [
+        // Image principale
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          child: Image.network(
+            property.mainImage.startsWith('http')
+                ? property.mainImage
+                : 'https://via.placeholder.com/600x400.png?text=Image+Indisponible',
+            height: 200,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              height: 200,
+              color: Colors.grey.shade300,
+              alignment: Alignment.center,
+              child: const Icon(Icons.image_not_supported, color: Colors.grey),
+            ),
+          ),
+        ),
+        
+        // Badge de certification (en haut à droite)
+        if (property.certified)
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppThemes.getCertifiedColor(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.verified, size: 14, color: Colors.white),
+                  SizedBox(width: 4),
+                  Text('Certifié',
+                      style: TextStyle(color: Colors.white, fontSize: 11)),
+                ],
+              ),
+            ),
+          ),
+        
+        // Badge de statut (en haut à gauche)
+        Positioned(
+          top: 12,
+          left: 12,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: _getStatusColor(context, property.status),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(_getStatusIcon(property.status), size: 14, color: Colors.white),
+                const SizedBox(width: 4),
+                Text(_getStatusTranslation(locale, property.status),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Section informations de la propriété
+  Widget _buildPropertyInfoSection(Property property, Color primary, Color accent) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Catégorie et ville
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${property.category.name.toUpperCase()}  •  ${property.town.name}',
+                  style: TextStyle(
+                      color: accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          
+          // Titre
+          Text(property.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 10),
+          
+          // Caractéristiques (surface, pièces, salles de bain)
+          Row(
+            children: [
+              _buildInfoPill(Icons.square_foot, '${property.area} m²'),
+              const SizedBox(width: 8),
+              _buildInfoPill(Icons.bed, '${property.roomsNb} pcs'),
+              const SizedBox(width: 8),
+              _buildInfoPill(Icons.bathtub, '${property.bathroomsNb} bains'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          // Prix et indicateur de navigation
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${property.monthlyPrice.toString().replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+                  (Match m) => '${m[1]} ')} XOF / mois',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: primary),
+              ),
+              Icon(Icons.arrow_forward_ios,
+                  size: 16, color: accent.withOpacity(.6)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Pill d'information (surface, chambres, etc.)
+  Widget _buildInfoPill(IconData icon, String label) {
     final accent = Theme.of(context).colorScheme.secondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1332,6 +1088,7 @@ class _PropertiesPageState extends State<PropertiesPage> {
     );
   }
 
+  /// Indicateur de chargement ou fin de liste
   Widget _buildBottomLoader() {
     if (_isPaginating) {
       return const Padding(
@@ -1353,80 +1110,72 @@ class _PropertiesPageState extends State<PropertiesPage> {
     return const SizedBox.shrink();
   }
 
-  Color _getStatusColor(BuildContext context, String status) {
-    switch (status) {
-      case 'free':
-        return AppThemes.getSuccessColor(context);
-      case 'busy':
-        return AppThemes.getErrorColor(context);
-      case 'prev_advise':
-        return AppThemes.getWarningColor(context);
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status) {
-      case 'free':
-        return Icons.check_circle;
-      case 'busy':
-        return Icons.do_not_disturb;
-      case 'prev_advise':
-        return Icons.access_time;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  String _getStatusTranslation(Locale locale, String status) {
-    final translations = {
-      'free': AppTranslations.get('status_free', locale, 'Libre'),
-      'busy': AppTranslations.get('status_busy', locale, 'Occupé'),
-      'prev_advise': AppTranslations.get('status_prev_advise', locale, 'Préavis'),
-    };
-    return translations[status] ?? status;
-  }
-
+  // ==================================================================
+  // BUILD PRINCIPAL
+  // ==================================================================
+  
   @override
   Widget build(BuildContext context) {
     final locale = Provider.of<SettingsProvider>(context).locale;
+    final authProvider = Provider.of<AuthProvider>(context);
+    final canCreate = _canCreateProperty(authProvider);
+    
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () => _loadProperties(isInitialLoad: true),
         child: Column(
           children: [
+            // Barre de recherche
             _buildSearchBar(context, locale),
+            
+            // Liste des propriétés
             Expanded(
-              child: _isLoading && _properties.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : _errorMessage != null
-                      ? Center(child: Text(_errorMessage!))
-                      : _properties.isEmpty
-                          ? Center(
-                              child: Text(AppTranslations.get(
-                                  'no_properties', locale, 'Aucune propriété')))
-                          : ListView.builder(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.only(top: 8),
-                              itemCount: _properties.length + 1,
-                              itemBuilder: (_, index) {
-                                if (index == _properties.length) {
-                                  return _buildBottomLoader();
-                                }
-                                return _buildPropertyItem(
-                                    context, _properties[index]);
-                              },
-                            ),
+              child: _buildContent(locale),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddPropertyDialog,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // Bouton flottant conditionnel pour l'ajout
+      floatingActionButton: canCreate
+          ? FloatingActionButton(
+              onPressed: _showAddPropertyDialog,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
+    );
+  }
+
+  /// Construit le contenu principal en fonction de l'état
+  Widget _buildContent(Locale locale) {
+    // État de chargement initial
+    if (_isLoading && _properties.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // État d'erreur
+    if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
+
+    // État liste vide
+    if (_properties.isEmpty) {
+      return Center(
+        child: Text(AppTranslations.get('no_properties', locale, 'Aucune propriété')),
+      );
+    }
+
+    // État normal - Liste des propriétés
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.only(top: 8),
+      itemCount: _properties.length + 1,
+      itemBuilder: (_, index) {
+        if (index == _properties.length) {
+          return _buildBottomLoader();
+        }
+        return _buildPropertyItem(context, _properties[index]);
+      },
     );
   }
 }
