@@ -2429,7 +2429,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                         controller: _monthlyPriceController,
                         decoration: InputDecoration(
                           labelText: '${AppTranslations.get('monthly_price', locale, 'Prix mensuel')} (XOF) *',
-                          hintText: '50000',
+                          hintText: '0',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -2449,7 +2449,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                         controller: _areaController,
                         decoration: InputDecoration(
                           labelText: '${AppTranslations.get('area', locale, 'Surface')} (m²) *',
-                          hintText: '120',
+                          hintText: '0',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -2473,7 +2473,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                         controller: _roomsController,
                         decoration: InputDecoration(
                           labelText: '${AppTranslations.get('rooms', locale, 'Chambres')} *',
-                          hintText: '3',
+                          hintText: '0',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -2493,7 +2493,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                         controller: _bathroomsController,
                         decoration: InputDecoration(
                           labelText: '${AppTranslations.get('bathrooms', locale, 'Salles de bain')} *',
-                          hintText: '2',
+                          hintText: '0',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -2517,7 +2517,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                         controller: _livingRoomsController,
                         decoration: InputDecoration(
                           labelText: '${AppTranslations.get('living_rooms', locale, 'Salons')} *',
-                          hintText: '1',
+                          hintText: '0',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -2537,7 +2537,7 @@ class _CreatePropertyPageState extends State<CreatePropertyPage> {
                         controller: _compartmentNumberController,
                         decoration: InputDecoration(
                           labelText: '${AppTranslations.get('compartment_number', locale, 'Numéro de compartiment')} *',
-                          hintText: '5',
+                          hintText: '0',
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
