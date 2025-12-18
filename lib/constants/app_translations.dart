@@ -243,6 +243,7 @@ class AppTranslations {
       'active': 'Active',
       'inactive': 'Inactive',
       'reports_made': 'Reports Made',
+      'map_view': 'Map view',
       
     },
     'fr': {
@@ -485,6 +486,7 @@ class AppTranslations {
       'active': 'Actif',
       'inactive': 'Inactif',
       'reports_made': 'Signalisations faites',
+      'map_view': 'Vue carte',
     },
   };
 

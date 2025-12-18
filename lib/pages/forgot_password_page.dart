@@ -356,9 +356,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   ButtonStyle _getSubmitButtonStyle() {
     return FilledButton.styleFrom(
       backgroundColor: primaryColor1,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      foregroundColor: Colors.white,
+      // padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
     );
   }

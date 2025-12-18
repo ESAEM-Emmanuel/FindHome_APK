@@ -644,7 +644,8 @@ class _MainScreenState extends State<MainScreen> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          // color: Colors.transparent.withOpacity(0.2),
           width: 1,
         ),
       ),

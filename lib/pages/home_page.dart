@@ -2828,7 +2828,34 @@ class _HomePageState extends State<HomePage> {
               child: _isLoading && _properties.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
-                      ? Center(child: Text(_errorMessage!))
+                      // ? Center(child: Text(_errorMessage!))
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _errorMessage!,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () => _loadProperties(isInitialLoad: true),
+                              icon: const Icon(Icons.refresh),
+                              label: Text(AppTranslations.get('retry', locale, 'Réessayer')),
+                            ),
+                          ],
+                        ),
+                      )
                       : _properties.isEmpty
                           ? Center(
                               child: Text(AppTranslations.get(

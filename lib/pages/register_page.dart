@@ -1397,7 +1397,8 @@ class _RegisterPageState extends State<RegisterPage> {
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor1,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        // padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),

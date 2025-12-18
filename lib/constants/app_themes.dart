@@ -96,16 +96,16 @@ import 'package:flutter/material.dart';
 // =============================================================================
 
 /// Couleur primaire principale de l'application - Bleu moderne
-const Color primaryColor1 = Color(0xFF3084F2);
+const Color primaryColor1 = Color(0xFF0175C2);
 
 /// Couleur d'accent - Orange vif pour les actions et éléments importants
-const Color accentColor1 = Color(0xFFF05524);
+const Color accentColor1 = Color(0xFFFF6600);
 
 /// Couleur de succès - Vert pour les confirmations et états positifs
 const Color successColor1 = Color.fromARGB(255, 5, 242, 131);
 
 /// Couleur d'erreur - Rouge pour les alertes et états négatifs
-const Color errorColor1 = Color.fromARGB(255, 243, 20, 20);
+const Color errorColor1 = Color.fromARGB(255, 243, 51, 51);
 
 /// Couleur d'avertissement - Orange clair pour les avertissements
 const Color warningColor1 = Color.fromARGB(255, 248, 139, 106);
