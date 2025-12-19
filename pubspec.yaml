@@ -37,6 +37,7 @@ dependencies:
   flutter_map: ^5.0.0       # pour la carte
   latlong2: ^0.9.1          # pour la gestion long lat
   geolocator: ^11.0.1       # pour la geolocalisation
+  url_launcher: ^6.1.12  # Pour ouvrir les apps de téléphone, SMS, WhatsApp
 
   # ✅ CORRIGÉ : Mise à jour de la version de intl pour résoudre le conflit avec flutter_localizations
   intl: ^0.20.2                    # Pour la localisation (i18n)

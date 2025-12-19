@@ -11,8 +11,14 @@
 // import '../widgets/property_map_widget.dart';
 // import 'edit_property_page.dart';
 
+// // ====================================================================
+// // PAGE DE DÉTAIL D'UNE PROPRIÉTÉ
+// // ====================================================================
+// /// Page affichant les détails complets d'une propriété
+// /// Gère l'affichage, les favoris, les signalements et l'édition
 // class PropertyDetailPage extends StatefulWidget {
 //   final String propertyId;
+  
 //   const PropertyDetailPage({super.key, required this.propertyId});
 
 //   @override
@@ -20,20 +26,36 @@
 // }
 
 // class _PropertyDetailPageState extends State<PropertyDetailPage> {
+//   // ==================================================================
+//   // SERVICES ET CONTRÔLEURS
+//   // ==================================================================
 //   final PropertyService _propertyService = PropertyService();
 //   final TextEditingController _reportController = TextEditingController();
+  
+//   // ==================================================================
+//   // ÉTAT DE LA PAGE
+//   // ==================================================================
 //   Property? _property;
 //   bool _isLoading = true;
 //   String? _errorMessage;
 //   bool _isReporting = false;
 //   bool _isTogglingFavorite = false;
 
+//   // ==================================================================
+//   // LIFECYCLE METHODS
+//   // ==================================================================
+  
 //   @override
 //   void initState() {
 //     super.initState();
 //     _loadPropertyDetails();
 //   }
 
+//   // ==================================================================
+//   // MÉTHODES DE GESTION DES DONNÉES
+//   // ==================================================================
+  
+//   /// Charge les détails de la propriété depuis l'API
 //   Future<void> _loadPropertyDetails() async {
 //     try {
 //       final loadedProperty = await _propertyService.getPropertyDetail(widget.propertyId);
@@ -56,7 +78,11 @@
 //     }
 //   }
 
-//   // === MÉTHODE : Vérifier les permissions de modification ===
+//   // ==================================================================
+//   // MÉTHODES D'UTILITÉ
+//   // ==================================================================
+  
+//   /// Vérifie si l'utilisateur actuel peut modifier cette propriété
 //   bool _canEditProperty() {
 //     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 //     final currentUser = authProvider.currentUser;
@@ -72,19 +98,7 @@
 //     return isOwner || isAdmin || isStaff;
 //   }
 
-//   // === MÉTHODE : Navigation vers la page d'édition ===
-//   void _navigateToEditProperty() {
-//     if (_property == null) return;
-
-//     Navigator.of(context).push(
-//       MaterialPageRoute(
-//         builder: (_) => EditPropertyPage(property: _property!),
-//       ),
-//     ).then((_) {
-//       _loadPropertyDetails();
-//     });
-//   }
-
+//   /// Retourne la traduction du statut de la propriété
 //   String _getStatusTranslation(Locale locale, String status) {
 //     final translations = {
 //       'free': AppTranslations.get('status_free', locale, 'Libre'),
@@ -94,6 +108,7 @@
 //     return translations[status] ?? status;
 //   }
 
+//   /// Retourne la couleur associée au statut de la propriété
 //   Color _getStatusColor(BuildContext context, String status) {
 //     switch (status) {
 //       case 'free':
@@ -107,6 +122,7 @@
 //     }
 //   }
 
+//   /// Retourne l'icône associée au statut de la propriété
 //   IconData _getStatusIcon(String status) {
 //     switch (status) {
 //       case 'free':
@@ -120,6 +136,24 @@
 //     }
 //   }
 
+//   // ==================================================================
+//   // MÉTHODES DE NAVIGATION
+//   // ==================================================================
+  
+//   /// Navigue vers la page d'édition de la propriété
+//   void _navigateToEditProperty() {
+//     if (_property == null) return;
+
+//     Navigator.of(context).push(
+//       MaterialPageRoute(
+//         builder: (_) => EditPropertyPage(property: _property!),
+//       ),
+//     ).then((_) {
+//       _loadPropertyDetails(); // Recharge les données après édition
+//     });
+//   }
+
+//   /// Ouvre la visionneuse d'images en plein écran
 //   void _openImageFullScreen(List<String> images, int initialIndex) {
 //     Navigator.of(context).push(
 //       MaterialPageRoute(
@@ -132,11 +166,13 @@
 //     );
 //   }
 
+//   /// Ouvre la carte en plein écran
 //   void _openFullScreenMap(BuildContext context, Property property) {
 //     if (!property.hasValidLocation) {
 //       ScaffoldMessenger.of(context).showSnackBar(
 //         SnackBar(
-//           content: Text(AppTranslations.get('location_unavailable', Provider.of<SettingsProvider>(context).locale, 'Localisation non disponible')),
+//           content: Text(AppTranslations.get('location_unavailable', 
+//               Provider.of<SettingsProvider>(context).locale, 'Localisation non disponible')),
 //           backgroundColor: AppThemes.getWarningColor(context),
 //         ),
 //       );
@@ -147,7 +183,8 @@
 //       MaterialPageRoute(
 //         builder: (_) => Scaffold(
 //           appBar: AppBar(
-//             title: Text(AppTranslations.get('location', Provider.of<SettingsProvider>(context).locale, 'Localisation')),
+//             title: Text(AppTranslations.get('location', 
+//                 Provider.of<SettingsProvider>(context).locale, 'Localisation')),
 //           ),
 //           body: PropertyMapWidget(
 //             property: property,
@@ -159,16 +196,22 @@
 //     );
 //   }
 
-//   // === MÉTHODE CORRIGÉE : Gestion du toggle des favoris ===
+//   // ==================================================================
+//   // MÉTHODES D'INTERACTION UTILISATEUR
+//   // ==================================================================
+  
+//   /// Gère l'ajout/suppression de la propriété aux favoris
 //   Future<void> _handleFavoriteToggle(BuildContext context, Locale locale) async {
 //     if (_property == null || _isTogglingFavorite) return;
 
 //     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+//     // Vérification de la connexion
 //     if (!authProvider.isLoggedIn) {
 //       ScaffoldMessenger.of(context).showSnackBar(
 //         SnackBar(
-//           content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour ajouter aux favoris.')),
+//           content: Text(AppTranslations.get('login_required', locale, 
+//               'Veuillez vous connecter pour ajouter aux favoris.')),
 //           backgroundColor: AppThemes.getWarningColor(context),
 //         ),
 //       );
@@ -178,18 +221,13 @@
 //     setState(() => _isTogglingFavorite = true);
 
 //     try {
-//       // Sauvegarder l'état précédent
 //       final wasFavorite = authProvider.isPropertyFavorite(_property!.id);
-      
-//       // Appeler le service pour toggle le favori
 //       await authProvider.toggleFavorite(_property!.id);
       
-//       // Forcer le rafraîchissement de l'interface
 //       if (mounted) {
 //         setState(() {});
 //       }
       
-//       // Afficher le message approprié
 //       final isNowFavorite = authProvider.isPropertyFavorite(_property!.id);
       
 //       ScaffoldMessenger.of(context).showSnackBar(
@@ -201,13 +239,12 @@
 //         ),
 //       );
       
-//       print('🔄 État favori changé: $wasFavorite → $isNowFavorite');
-      
 //     } catch (e) {
 //       print('❌ Erreur toggle favori: $e');
 //       ScaffoldMessenger.of(context).showSnackBar(
 //         SnackBar(
-//           content: Text('${AppTranslations.get('favorite_error', locale, 'Erreur lors de la modification des favoris')}: $e'),
+//           content: Text('${AppTranslations.get('favorite_error', locale, 
+//               'Erreur lors de la modification des favoris')}: $e'),
 //           backgroundColor: AppThemes.getErrorColor(context),
 //         ),
 //       );
@@ -217,14 +254,18 @@
 //       }
 //     }
 //   }
-//   Future<void> _showReportDialog(BuildContext context, Locale locale, {bool isUserReport = false}) async {
+
+//   /// Affiche la boîte de dialogue de signalement
+//   Future<void> _showReportDialog(BuildContext context, Locale locale, 
+//       {bool isUserReport = false}) async {
 //     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 //     final accessToken = authProvider.accessToken;
 
 //     if (accessToken == null) {
 //       ScaffoldMessenger.of(context).showSnackBar(
 //         SnackBar(
-//           content: Text(AppTranslations.get('login_required', locale, 'Veuillez vous connecter pour effectuer un signalement.')),
+//           content: Text(AppTranslations.get('login_required', locale, 
+//               'Veuillez vous connecter pour effectuer un signalement.')),
 //           backgroundColor: AppThemes.getWarningColor(context),
 //         ),
 //       );
@@ -240,7 +281,8 @@
 //         content: Column(
 //           mainAxisSize: MainAxisSize.min,
 //           children: [
-//             Text(AppTranslations.get('report_description', locale, 'Veuillez décrire la raison de votre signalement')),
+//             Text(AppTranslations.get('report_description', locale, 
+//                 'Veuillez décrire la raison de votre signalement')),
 //             const SizedBox(height: 16),
 //             TextField(
 //               controller: _reportController,
@@ -258,10 +300,12 @@
 //             child: Text(AppTranslations.get('cancel', locale, 'Annuler')),
 //           ),
 //           ElevatedButton(
-//             onPressed: _isReporting ? null : () => _handleReport(context, locale, accessToken, isUserReport: isUserReport),
+//             onPressed: _isReporting ? null : 
+//                 () => _handleReport(context, locale, accessToken, isUserReport: isUserReport),
 //             style: ElevatedButton.styleFrom(backgroundColor: AppThemes.getErrorColor(context)),
 //             child: _isReporting
-//                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+//                 ? const SizedBox(width: 20, height: 20, 
+//                     child: CircularProgressIndicator(strokeWidth: 2))
 //                 : Text(AppTranslations.get('report', locale, 'Signaler')),
 //           ),
 //         ],
@@ -269,7 +313,9 @@
 //     );
 //   }
 
-//   Future<void> _handleReport(BuildContext context, Locale locale, String accessToken, {bool isUserReport = false}) async {
+//   /// Traite l'envoi du signalement
+//   Future<void> _handleReport(BuildContext context, Locale locale, String accessToken, 
+//       {bool isUserReport = false}) async {
 //     if (_property == null || _reportController.text.isEmpty) return;
 
 //     setState(() => _isReporting = true);
@@ -285,7 +331,8 @@
 //         Navigator.of(context).pop();
 //         ScaffoldMessenger.of(context).showSnackBar(
 //           SnackBar(
-//             content: Text(AppTranslations.get('report_success', locale, 'Signalement envoyé avec succès')),
+//             content: Text(AppTranslations.get('report_success', locale, 
+//                 'Signalement envoyé avec succès')),
 //             backgroundColor: AppThemes.getSuccessColor(context),
 //           ),
 //         );
@@ -295,7 +342,8 @@
 //       if (mounted) {
 //         ScaffoldMessenger.of(context).showSnackBar(
 //           SnackBar(
-//             content: Text('${AppTranslations.get('report_error', locale, 'Erreur lors de l\'envoi du signalement')}: $e'),
+//             content: Text('${AppTranslations.get('report_error', locale, 
+//                 'Erreur lors de l\'envoi du signalement')}: $e'),
 //             backgroundColor: AppThemes.getErrorColor(context),
 //           ),
 //         );
@@ -305,182 +353,11 @@
 //     }
 //   }
 
-//   // === WIDGET : Bouton flottant de modification ===
-//   Widget _buildEditFloatingButton() {
-//     if (!_canEditProperty()) {
-//       return const SizedBox.shrink();
-//     }
+//   // ==================================================================
+//   // WIDGETS DE L'INTERFACE UTILISATEUR
+//   // ==================================================================
 
-//     return FloatingActionButton(
-//       onPressed: _navigateToEditProperty,
-//       backgroundColor: Theme.of(context).colorScheme.secondary,
-//       foregroundColor: Colors.white,
-//       child: const Icon(Icons.edit, size: 24),
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(16),
-//       ),
-//       elevation: 4,
-//     );
-//   }
-
-//   // === WIDGET : Section des équipements techniques ===
-//   Widget _buildUtilitiesSection(Property property, Locale locale) {
-//     String _getUtilityValueTranslation(String value) {
-//       final translations = {
-//         'not_available': AppTranslations.get('not_available', locale, 'Non disponible'),
-//         'connected_public_supply': AppTranslations.get('connected_public_supply', locale, 'Réseau public'),
-//         'stand_alone_system': AppTranslations.get('stand_alone_system', locale, 'Système autonome'),
-//         'stand_alone_system_with_mains_connection': AppTranslations.get('stand_alone_system_with_mains_connection', locale, 'Système autonome avec connexion réseau'),
-//       };
-//       return translations[value] ?? value;
-//     }
-
-//     IconData _getUtilityIcon(String type, String value) {
-//       if (type == 'water') {
-//         switch (value) {
-//           case 'connected_public_supply':
-//             return Icons.water_drop;
-//           case 'stand_alone_system':
-//             return Icons.water;
-//           case 'stand_alone_system_with_mains_connection':
-//             return Icons.water_drop_outlined;
-//           default:
-//             return Icons.water_damage;
-//         }
-//       } else {
-//         switch (value) {
-//           case 'connected_public_supply':
-//             return Icons.bolt;
-//           case 'stand_alone_system':
-//             return Icons.solar_power;
-//           case 'stand_alone_system_with_mains_connection':
-//             return Icons.electrical_services;
-//           default:
-//             return Icons.power_off;
-//         }
-//       }
-//     }
-
-//     Color _getUtilityColor(String value) {
-//       switch (value) {
-//         case 'connected_public_supply':
-//           return AppThemes.getSuccessColor(context);
-//         case 'stand_alone_system':
-//           return AppThemes.getWarningColor(context);
-//         case 'stand_alone_system_with_mains_connection':
-//           return AppThemes.getInfoColor(context);
-//         default:
-//           return AppThemes.getErrorColor(context);
-//       }
-//     }
-
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 16),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Text(
-//             AppTranslations.get('utilities', locale, 'viabilisation'),
-//             style: Theme.of(context).textTheme.titleLarge,
-//           ),
-//           const SizedBox(height: 15),
-//           Container(
-//             padding: const EdgeInsets.all(16),
-//             decoration: BoxDecoration(
-//               color: Theme.of(context).cardColor,
-//               borderRadius: BorderRadius.circular(12),
-//               border: Border.all(color: Theme.of(context).dividerColor),
-//             ),
-//             child: Column(
-//               children: [
-//                 Row(
-//                   children: [
-//                     Container(
-//                       padding: const EdgeInsets.all(8),
-//                       decoration: BoxDecoration(
-//                         color: _getUtilityColor(property.electricalConnection).withOpacity(0.1),
-//                         borderRadius: BorderRadius.circular(8),
-//                       ),
-//                       child: Icon(
-//                         _getUtilityIcon('electricity', property.electricalConnection),
-//                         color: _getUtilityColor(property.electricalConnection),
-//                         size: 24,
-//                       ),
-//                     ),
-//                     const SizedBox(width: 12),
-//                     Expanded(
-//                       child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         children: [
-//                           Text(
-//                             AppTranslations.get('electrical_connection', locale, 'Alimentation électrique'),
-//                             style: TextStyle(
-//                               fontWeight: FontWeight.w600,
-//                               color: Theme.of(context).colorScheme.secondary,
-//                             ),
-//                           ),
-//                           const SizedBox(height: 4),
-//                           Text(
-//                             _getUtilityValueTranslation(property.electricalConnection),
-//                             style: TextStyle(
-//                               color: _getUtilityColor(property.electricalConnection),
-//                               fontWeight: FontWeight.w500,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 16),
-//                 Row(
-//                   children: [
-//                     Container(
-//                       padding: const EdgeInsets.all(8),
-//                       decoration: BoxDecoration(
-//                         color: _getUtilityColor(property.waterSupply).withOpacity(0.1),
-//                         borderRadius: BorderRadius.circular(8),
-//                       ),
-//                       child: Icon(
-//                         _getUtilityIcon('water', property.waterSupply),
-//                         color: _getUtilityColor(property.waterSupply),
-//                         size: 24,
-//                       ),
-//                     ),
-//                     const SizedBox(width: 12),
-//                     Expanded(
-//                       child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         children: [
-//                           Text(
-//                             AppTranslations.get('water_supply', locale, 'Alimentation en eau'),
-//                             style: TextStyle(
-//                               fontWeight: FontWeight.w600,
-//                               color: Theme.of(context).colorScheme.secondary,
-//                             ),
-//                           ),
-//                           const SizedBox(height: 4),
-//                           Text(
-//                             _getUtilityValueTranslation(property.waterSupply),
-//                             style: TextStyle(
-//                               color: _getUtilityColor(property.waterSupply),
-//                               fontWeight: FontWeight.w500,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   // === WIDGET : AppBar avec images ===
+//   /// Bannière principale avec l'image de la propriété
 //   Widget _buildAppBar(Property property, Locale locale) {
 //     final allImages = [property.mainImage, ...property.otherImages];
 //     final displayImages = allImages.where((url) => url.isNotEmpty).toList();
@@ -496,10 +373,12 @@
 //           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
 //         ),
 //         background: GestureDetector(
-//           onTap: () => displayImages.isNotEmpty ? _openImageFullScreen(displayImages, 0) : null,
+//           onTap: () => displayImages.isNotEmpty ? 
+//               _openImageFullScreen(displayImages, 0) : null,
 //           child: Stack(
 //             fit: StackFit.expand,
 //             children: [
+//               // Image principale
 //               Image.network(
 //                 property.mainImage,
 //                 fit: BoxFit.cover,
@@ -508,6 +387,7 @@
 //                   child: const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
 //                 ),
 //               ),
+//               // Dégradé pour améliorer la lisibilité du titre
 //               DecoratedBox(
 //                 decoration: BoxDecoration(
 //                   gradient: LinearGradient(
@@ -517,72 +397,17 @@
 //                   ),
 //                 ),
 //               ),
-//               // Positioned(
-//               //   top: 12,
-//               //   left: 12,
-//               //   child: Column(
-//               //     crossAxisAlignment: CrossAxisAlignment.start,
-//               //     children: [
-//               //       Container(
-//               //         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-//               //         decoration: BoxDecoration(
-//               //           color: _getStatusColor(context, property.status),
-//               //           borderRadius: BorderRadius.circular(12),
-//               //         ),
-//               //         child: Row(
-//               //           mainAxisSize: MainAxisSize.min,
-//               //           children: [
-//               //             Icon(_getStatusIcon(property.status), size: 14, color: Colors.white),
-//               //             const SizedBox(width: 4),
-//               //             Text(
-//               //               _getStatusTranslation(locale, property.status),
-//               //               style: const TextStyle(
-//               //                 color: Colors.white,
-//               //                 fontSize: 11,
-//               //                 fontWeight: FontWeight.w600
-//               //               ),
-//               //             ),
-//               //           ],
-//               //         ),
-//               //       ),
-//               //       const SizedBox(height: 8),
-//               //       if (property.certified)
-//               //         Container(
-//               //           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-//               //           decoration: BoxDecoration(
-//               //             color: AppThemes.getCertifiedColor(context),
-//               //             borderRadius: BorderRadius.circular(12),
-//               //           ),
-//               //           child: const Row(
-//               //             mainAxisSize: MainAxisSize.min,
-//               //             children: [
-//               //               Icon(Icons.verified, size: 14, color: Colors.white),
-//               //               SizedBox(width: 4),
-//               //               Text(
-//               //                 'Certifié',
-//               //                 style: TextStyle(
-//               //                   color: Colors.white,
-//               //                   fontSize: 11,
-//               //                   fontWeight: FontWeight.w600
-//               //                 ),
-//               //               ),
-//               //             ],
-//               //           ),
-//               //         ),
-//               //     ],
-//               //   ),
-//               // ),
 //             ],
 //           ),
 //         ),
 //       ),
 //       actions: [
+//         // Badge "Propriétaire" si l'utilisateur peut éditer
 //         if (_canEditProperty())
 //           Container(
 //             margin: const EdgeInsets.all(8),
 //             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
 //             decoration: BoxDecoration(
-//               // color: Colors.green.withOpacity(0.9),
 //               color: AppThemes.getCertifiedColor(context),
 //               borderRadius: BorderRadius.circular(12),
 //             ),
@@ -602,7 +427,7 @@
 //               ],
 //             ),
 //           ),
-//         // ⭐⭐⭐ BOUTON FAVORI CORRIGÉ ===
+//         // Bouton favori
 //         Consumer<AuthProvider>(
 //           builder: (context, authProvider, child) {
 //             final isFavorite = authProvider.isPropertyFavorite(property.id);
@@ -630,17 +455,22 @@
 //             );
 //           },
 //         ),
+//         // Menu contextuel
 //         Consumer<AuthProvider>(
 //           builder: (context, authProvider, child) {
 //             return PopupMenuButton<String>(
 //               icon: const Icon(Icons.more_vert, color: Colors.white),
 //               onSelected: (value) {
-//                 if (value == 'report_property') {
-//                   _showReportDialog(context, locale, isUserReport: false);
-//                 } else if (value == 'report_user') {
-//                   _showReportDialog(context, locale, isUserReport: true);
-//                 } else if (value == 'edit_property' && _canEditProperty()) {
-//                   _navigateToEditProperty();
+//                 switch (value) {
+//                   case 'report_property':
+//                     _showReportDialog(context, locale, isUserReport: false);
+//                     break;
+//                   case 'report_user':
+//                     _showReportDialog(context, locale, isUserReport: true);
+//                     break;
+//                   case 'edit_property':
+//                     if (_canEditProperty()) _navigateToEditProperty();
+//                     break;
 //                 }
 //               },
 //               itemBuilder: (_) {
@@ -693,13 +523,14 @@
 //     );
 //   }
   
-//   // === WIDGET : Section prix et localisation ===
+//   /// Section affichant le prix, la localisation et les badges de statut
 //   Widget _buildPriceLocationSection(Property property, Locale locale) {
 //     return Padding(
 //       padding: const EdgeInsets.all(16),
 //       child: Column(
 //         crossAxisAlignment: CrossAxisAlignment.start,
 //         children: [
+//           // Catégorie et ville
 //           Text(
 //             '${property.category.name} • ${property.town.name}',
 //             style: TextStyle(
@@ -709,8 +540,11 @@
 //             ),
 //           ),
 //           const SizedBox(height: 8),
+//           // Prix
 //           Text(
-//             '${property.monthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ')} XOF / mois',
+//             '${property.monthlyPrice.toString().replaceAllMapped(
+//               RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+//               (Match m) => '${m[1]} ')} XOF / mois',
 //             style: TextStyle(
 //               fontSize: 28,
 //               fontWeight: FontWeight.w900,
@@ -718,6 +552,7 @@
 //             ),
 //           ),
 //           const SizedBox(height: 8),
+//           // Adresse
 //           Row(
 //             children: [
 //               const Icon(Icons.location_on, size: 18, color: Colors.grey),
@@ -731,10 +566,12 @@
 //             ],
 //           ),
 //           const SizedBox(height: 12),
+//           // Badges de statut et certification
 //           Wrap(
 //             spacing: 8,
 //             runSpacing: 8,
 //             children: [
+//               // Badge de statut
 //               Container(
 //                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
 //                 decoration: BoxDecoration(
@@ -765,6 +602,7 @@
 //                   ],
 //                 ),
 //               ),
+//               // Badge de certification
 //               if (property.certified)
 //                 Container(
 //                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -803,14 +641,13 @@
 //     );
 //   }
 
-//   // === WIDGET : Pills d'information ===
+//   /// Section des informations principales sous forme de "pills"
 //   Widget _buildInfoPills(Property property) {
-//     final accent = Theme.of(context).colorScheme.secondary;
 //     final pills = [
-//       _pill(Icons.bed, '${property.roomsNb}', 'Chambres'),
-//       _pill(Icons.bathtub, '${property.bathroomsNb}', 'Salles de bain'),
-//       _pill(Icons.living, '${property.livingRoomsNb}', 'Salons'),
-//       _pill(Icons.square_foot, '${property.area}', 'm²'),
+//       _buildInfoPill(Icons.bed, '${property.roomsNb}', 'Chambres'),
+//       _buildInfoPill(Icons.bathtub, '${property.bathroomsNb}', 'Salles de bain'),
+//       _buildInfoPill(Icons.living, '${property.livingRoomsNb}', 'Salons'),
+//       _buildInfoPill(Icons.square_foot, '${property.area}', 'm²'),
 //     ];
 
 //     return Padding(
@@ -822,7 +659,8 @@
 //     );
 //   }
 
-//   Widget _pill(IconData icon, String value, String label) {
+//   /// Widget individuel pour une information sous forme de pill
+//   Widget _buildInfoPill(IconData icon, String value, String label) {
 //     final accent = Theme.of(context).colorScheme.secondary;
 //     return Column(
 //       children: [
@@ -841,7 +679,7 @@
 //     );
 //   }
 
-//   // === WIDGET : Section description ===
+//   /// Section de description de la propriété
 //   Widget _buildDescriptionSection(Property property, Locale locale) {
 //     return Padding(
 //       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -862,7 +700,7 @@
 //     );
 //   }
 
-//   // === WIDGET : Galerie d'images ===
+//   /// Galerie d'images supplémentaires
 //   Widget _buildImageGallery(Property property) {
 //     final allImages = [property.mainImage, ...property.otherImages];
 //     final displayImages = allImages.where((url) => url.isNotEmpty).toList();
@@ -922,7 +760,146 @@
 //     );
 //   }
 
-//   // === WIDGET : Section carte ===
+//   /// Section des équipements techniques (eau, électricité)
+//   Widget _buildUtilitiesSection(Property property, Locale locale) {
+    
+//     /// Retourne la traduction d'une valeur d'équipement
+//     String _getUtilityValueTranslation(String value) {
+//       final translations = {
+//         'not_available': AppTranslations.get('not_available', locale, 'Non disponible'),
+//         'connected_public_supply': AppTranslations.get('connected_public_supply', locale, 'Réseau public'),
+//         'stand_alone_system': AppTranslations.get('stand_alone_system', locale, 'Système autonome'),
+//         'stand_alone_system_with_mains_connection': AppTranslations.get('stand_alone_system_with_mains_connection', locale, 'Système autonome avec connexion réseau'),
+//       };
+//       return translations[value] ?? value;
+//     }
+
+//     /// Retourne l'icône appropriée pour un type d'équipement
+//     IconData _getUtilityIcon(String type, String value) {
+//       if (type == 'water') {
+//         switch (value) {
+//           case 'connected_public_supply': return Icons.water_drop;
+//           case 'stand_alone_system': return Icons.water;
+//           case 'stand_alone_system_with_mains_connection': return Icons.water_drop_outlined;
+//           default: return Icons.water_damage;
+//         }
+//       } else {
+//         switch (value) {
+//           case 'connected_public_supply': return Icons.bolt;
+//           case 'stand_alone_system': return Icons.solar_power;
+//           case 'stand_alone_system_with_mains_connection': return Icons.electrical_services;
+//           default: return Icons.power_off;
+//         }
+//       }
+//     }
+
+//     /// Retourne la couleur appropriée pour un état d'équipement
+//     Color _getUtilityColor(String value) {
+//       switch (value) {
+//         case 'connected_public_supply': return AppThemes.getSuccessColor(context);
+//         case 'stand_alone_system': return AppThemes.getWarningColor(context);
+//         case 'stand_alone_system_with_mains_connection': return AppThemes.getInfoColor(context);
+//         default: return AppThemes.getErrorColor(context);
+//       }
+//     }
+
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 16),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(
+//             AppTranslations.get('utilities', locale, 'viabilisation'),
+//             style: Theme.of(context).textTheme.titleLarge,
+//           ),
+//           const SizedBox(height: 15),
+//           Container(
+//             padding: const EdgeInsets.all(16),
+//             decoration: BoxDecoration(
+//               color: Theme.of(context).cardColor,
+//               borderRadius: BorderRadius.circular(12),
+//               border: Border.all(color: Theme.of(context).dividerColor),
+//             ),
+//             child: Column(
+//               children: [
+//                 // Alimentation électrique
+//                 _buildUtilityRow(
+//                   'electricity',
+//                   property.electricalConnection,
+//                   AppTranslations.get('electrical_connection', locale, 'Alimentation électrique'),
+//                   _getUtilityValueTranslation,
+//                   _getUtilityIcon,
+//                   _getUtilityColor,
+//                 ),
+//                 const SizedBox(height: 16),
+//                 // Alimentation en eau
+//                 _buildUtilityRow(
+//                   'water',
+//                   property.waterSupply,
+//                   AppTranslations.get('water_supply', locale, 'Alimentation en eau'),
+//                   _getUtilityValueTranslation,
+//                   _getUtilityIcon,
+//                   _getUtilityColor,
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   /// Ligne individuelle pour un équipement technique
+//   Widget _buildUtilityRow(
+//     String type,
+//     String value,
+//     String label,
+//     String Function(String) valueTranslator,
+//     IconData Function(String, String) iconGetter,
+//     Color Function(String) colorGetter,
+//   ) {
+//     return Row(
+//       children: [
+//         Container(
+//           padding: const EdgeInsets.all(8),
+//           decoration: BoxDecoration(
+//             color: colorGetter(value).withOpacity(0.1),
+//             borderRadius: BorderRadius.circular(8),
+//           ),
+//           child: Icon(
+//             iconGetter(type, value),
+//             color: colorGetter(value),
+//             size: 24,
+//           ),
+//         ),
+//         const SizedBox(width: 12),
+//         Expanded(
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               Text(
+//                 label,
+//                 style: TextStyle(
+//                   fontWeight: FontWeight.w600,
+//                   color: Theme.of(context).colorScheme.secondary,
+//                 ),
+//               ),
+//               const SizedBox(height: 4),
+//               Text(
+//                 valueTranslator(value),
+//                 style: TextStyle(
+//                   color: colorGetter(value),
+//                   fontWeight: FontWeight.w500,
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+
+//   /// Section de la carte avec localisation
 //   Widget _buildMapSection(Property property, Locale locale) {
 //     return Padding(
 //       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -971,7 +948,7 @@
 //     );
 //   }
 
-//   // === WIDGET : Section équipements ===
+//   /// Section des équipements de confort
 //   Widget _buildFeaturesSection(Property property, Locale locale) {
 //     final accent = Theme.of(context).colorScheme.secondary;
 //     final features = <String, bool>{
@@ -1016,14 +993,18 @@
 //     );
 //   }
 
-//   // === WIDGET : Barre de contact ===
+//   /// Barre de contact en bas de page
 //   Widget _buildContactBar(Locale locale) {
 //     final accent = Theme.of(context).colorScheme.secondary;
 //     return Container(
 //       padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
 //       decoration: BoxDecoration(
 //         color: Theme.of(context).cardColor,
-//         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -5))],
+//         boxShadow: [BoxShadow(
+//           color: Colors.black.withOpacity(0.1), 
+//           blurRadius: 10, 
+//           offset: const Offset(0, -5)
+//         )],
 //       ),
 //       child: SizedBox(
 //         height: 50,
@@ -1050,10 +1031,33 @@
 //     );
 //   }
 
+//   /// Bouton flottant d'édition (visible seulement pour les propriétaires/admins)
+//   Widget _buildEditFloatingButton() {
+//     if (!_canEditProperty()) {
+//       return const SizedBox.shrink();
+//     }
+
+//     return FloatingActionButton(
+//       onPressed: _navigateToEditProperty,
+//       backgroundColor: Theme.of(context).colorScheme.secondary,
+//       foregroundColor: Colors.white,
+//       child: const Icon(Icons.edit, size: 24),
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(16),
+//       ),
+//       elevation: 4,
+//     );
+//   }
+
+//   // ==================================================================
+//   // BUILD PRINCIPAL
+//   // ==================================================================
+  
 //   @override
 //   Widget build(BuildContext context) {
 //     final locale = Provider.of<SettingsProvider>(context).locale;
 
+//     // État de chargement
 //     if (_isLoading) {
 //       return Scaffold(
 //         body: Center(
@@ -1069,6 +1073,7 @@
 //       );
 //     }
 
+//     // État d'erreur
 //     if (_errorMessage != null || _property == null) {
 //       return Scaffold(
 //         appBar: AppBar(title: Text(AppTranslations.get('error', locale, 'Erreur'))),
@@ -1090,6 +1095,7 @@
 //       );
 //     }
 
+//     // État normal - Affichage des détails
 //     final property = _property!;
 //     return Scaffold(
 //       body: CustomScrollView(
@@ -1111,7 +1117,7 @@
 //                 _buildMapSection(property, locale),
 //                 const SizedBox(height: 30),
 //                 _buildFeaturesSection(property, locale),
-//                 const SizedBox(height: 80),
+//                 const SizedBox(height: 80), // Espace pour la barre de contact
 //               ],
 //             ),
 //           ),
@@ -1124,6 +1130,7 @@
 //   }
 // }
 // lib/pages/property_detail_page.dart
+// lib/pages/property_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/property_model.dart';
@@ -1135,6 +1142,7 @@ import '../constants/app_themes.dart';
 import 'simple_image_viewer_screen.dart';
 import '../widgets/property_map_widget.dart';
 import 'edit_property_page.dart';
+import '../widgets/export_widgets.dart'; // Uniquement cet import
 
 // ====================================================================
 // PAGE DE DÉTAIL D'UNE PROPRIÉTÉ
@@ -1476,6 +1484,29 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     } finally {
       if (mounted) setState(() => _isReporting = false);
     }
+  }
+
+  // ==================================================================
+  // MÉTHODES DE CONTACT
+  // ==================================================================
+  
+  /// Affiche les options de contact dans un menu contextuel
+  void _showContactOptions(BuildContext context, Locale locale, String phoneNumber) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        return ContactOptionsModal(
+          phoneNumber: phoneNumber,
+          ownerName: _property?.owner?.username ?? 'Propriétaire',
+          locale: locale,
+        );
+      },
+    );
   }
 
   // ==================================================================
@@ -2118,9 +2149,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     );
   }
 
-  /// Barre de contact en bas de page
+  /// Barre de contact en bas de page avec options multiples
   Widget _buildContactBar(Locale locale) {
     final accent = Theme.of(context).colorScheme.secondary;
+    
     return Container(
       padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
@@ -2131,29 +2163,131 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
           offset: const Offset(0, -5)
         )],
       ),
-      child: SizedBox(
+      child: _buildContactOptions(locale),
+    );
+  }
+
+  /// Widget des options de contact avec menu contextuel
+  Widget _buildContactOptions(Locale locale) {
+    final phoneNumber = _property?.owner?.phone ?? '';
+    final ownerName = _property?.owner?.username ?? 'Propriétaire';
+    
+    // Vérifier si le numéro est disponible
+    if (phoneNumber.isEmpty) {
+      return SizedBox(
         height: 50,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: accent,
-            foregroundColor: Colors.white,
+            backgroundColor: Colors.grey.shade300,
+            foregroundColor: Colors.grey.shade600,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Fonctionnalité de contact à implémenter'),
-                backgroundColor: AppThemes.getInfoColor(context),
-              ),
-            );
-          },
+          onPressed: null,
           child: Text(
-            AppTranslations.get('contact_owner', locale, 'Contacter le propriétaire'),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            AppTranslations.get('no_contact', locale, 'Contact non disponible'),
+            style: const TextStyle(fontSize: 16),
           ),
+        ),
+      );
+    }
+    
+    // Affiche le numéro formaté dans le bouton
+    final displayedPhone = phoneNumber.length > 15 
+        ? '${phoneNumber.substring(0, 12)}...' 
+        : phoneNumber;
+    
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 2,
+        ),
+        onPressed: () => _showContactOptions(context, locale, phoneNumber),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.phone, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                // mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    AppTranslations.get('contact_owner', locale, 'Contacter'),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    displayedPhone,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_drop_up, size: 20),
+          ],
         ),
       ),
     );
+    // Affiche le numéro formaté dans le bouton
+    // final displayedPhone = phoneNumber.length > 15 
+    //     ? '${phoneNumber.substring(0, 12)}...' 
+    //     : phoneNumber;
+
+    // return SizedBox(
+    //   height: 60,
+    //   child: ElevatedButton(
+    //     style: ElevatedButton.styleFrom(
+    //       backgroundColor: Theme.of(context).colorScheme.secondary,
+    //       foregroundColor: Colors.white,
+    //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    //       elevation: 2,
+    //       padding: const EdgeInsets.symmetric(
+    //         vertical: 10,  // 10 pixels en haut et en bas
+    //         horizontal: 20, // 40 pixels à gauche et à droite
+    //       ),
+    //     ),
+    //     onPressed: () => _showContactOptions(context, locale, phoneNumber),
+    //     child: Row(
+    //       mainAxisAlignment: MainAxisAlignment.center, // Centre horizontalement
+    //       crossAxisAlignment: CrossAxisAlignment.center, // Centre verticalement
+    //       children: [
+    //         Icon(Icons.phone, size: 20),
+    //         const SizedBox(width: 8),
+    //         Expanded(
+    //           child: Column(
+    //             mainAxisSize: MainAxisSize.min,
+    //             mainAxisAlignment: MainAxisAlignment.center, // Centre verticalement dans la colonne
+    //             crossAxisAlignment: CrossAxisAlignment.center, // Centre horizontalement dans la colonne
+    //             children: [
+    //               Text(
+    //                 AppTranslations.get('contact_owner', locale, 'Contacter'),
+    //                 style: const TextStyle(fontSize: 14),
+    //               ),
+    //               Text(
+    //                 displayedPhone,
+    //                 style: const TextStyle(
+    //                   fontSize: 12,
+    //                   fontWeight: FontWeight.w300,
+    //                 ),
+    //                 overflow: TextOverflow.ellipsis,
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    //         Icon(Icons.arrow_drop_up, size: 20),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 
   /// Bouton flottant d'édition (visible seulement pour les propriétaires/admins)

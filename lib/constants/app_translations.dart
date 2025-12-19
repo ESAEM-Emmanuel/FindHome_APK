@@ -5,6 +5,8 @@ class AppTranslations {
     'en': {
       'welcome': 'Welcome',
       'login_to_continue': 'Log in to continue',
+      'required_username': 'The username is required.',
+      'required_password': 'Password required',
       'username': 'Username',
       'password': 'Password',
       'login_button': 'LOG IN',
@@ -109,6 +111,7 @@ class AppTranslations {
       'monthly_price': 'Monthly Price',
       'view_details': 'View Details',
       'add_property_coming_soon': 'Add property feature coming soon...',
+      'end_of_list': 'End of list',
 
       // PROPERTY CREATION PAGE
       'new_property': 'New Property',
@@ -244,11 +247,25 @@ class AppTranslations {
       'inactive': 'Inactive',
       'reports_made': 'Reports Made',
       'map_view': 'Map view',
+
+      'no_contact': 'Contact not available',
+      'contact_options': 'Contact',
+      'phone_number': 'Phone number',
+      'call': 'Call',
+      'call_description': 'Make a direct call',
+      'whatsapp_description': 'Send a WhatsApp message',
+      'sms_description': 'Send an SMS',
+      'copied_to_clipboard': 'Number copied to clipboard',
+      'call_failed': 'Unable to make call',
+      'whatsapp_not_installed': 'WhatsApp is not installed',
+      'sms_failed': 'Unable to open SMS app',
       
     },
     'fr': {
       'welcome': 'Bienvenue',
       'login_to_continue': 'Connectez-vous pour continuer',
+      'required_username': 'Le nom utilisateur est requis',
+      'required_password': 'Le mot de passe est requis',
       'username': 'Nom d\'utilisateur',
       'password': 'Mot de passe',
       'login_button': 'CONNEXION',
@@ -273,7 +290,6 @@ class AppTranslations {
       'features': 'Équipements',
       'description': 'Description',
       'gallery': 'Galerie d\'images',
-      'contact_owner': 'Contacter le Propriétaire',
       'error': 'Erreur',
       'favorite_added': 'Ajouté aux favoris !',
       'favorite_removed': 'Retiré des favoris',
@@ -352,6 +368,7 @@ class AppTranslations {
       'monthly_price': 'Prix mensuel',
       'view_details': 'Voir détails',
       'add_property_coming_soon': 'Fonctionnalité d\'ajout de propriété à venir...',
+      'end_of_list': 'Fin de la liste',
 
       // PAGE DE CRÉATION DE PROPRIÉTÉ
       'new_property': 'Nouvelle propriété',
@@ -487,6 +504,19 @@ class AppTranslations {
       'inactive': 'Inactif',
       'reports_made': 'Signalisations faites',
       'map_view': 'Vue carte',
+      
+      'contact_owner': 'Contacter le propriétaire',
+      'no_contact': 'Contact non disponible',
+      'contact_options': 'Contacter',
+      'phone_number': 'Numéro',
+      'call': 'Appeler',
+      'call_description': 'Passer un appel direct',
+      'whatsapp_description': 'Envoyer un message WhatsApp',
+      'sms_description': 'Envoyer un SMS',
+      'copied_to_clipboard': 'Numéro copié dans le presse-papier',
+      'call_failed': 'Impossible de lancer l\'appel',
+      'whatsapp_not_installed': 'WhatsApp n\'est pas installé',
+      'sms_failed': 'Impossible d\'ouvrir l\'application SMS',
     },
   };
 
