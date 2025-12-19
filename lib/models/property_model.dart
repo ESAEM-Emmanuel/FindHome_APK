@@ -490,6 +490,17 @@ class Favorite {
   final String refNumber;
   final bool active;
 
+  // Dans property_model.dart, ajoutez à la classe Favorite
+  factory Favorite.empty() {
+    return Favorite(
+      id: '',
+      propertyId: '',
+      createdById: '',
+      refNumber: '',
+      active: false,
+    );
+  }
+
   Favorite({
     required this.id,
     required this.propertyId,
@@ -569,6 +580,56 @@ class Property {
 
   // === ÉTAT DE VÉRIFICATION ===
   final bool hasSendVerifiedRequest;
+  // Dans property_model.dart, ajoutez à la classe Property
+  factory Property.empty() {
+    return Property(
+      // Informations de base
+      id: '',
+      title: 'Propriété non disponible',
+      description: 'Description non disponible',
+      address: 'Adresse non spécifiée',
+      monthlyPrice: 0,
+      area: 0,
+      roomsNb: 0,
+      bathroomsNb: 0,
+      mainImage: '',
+      otherImages: [],
+      certified: false,
+      status: 'free',
+      
+      // Objets imbriqués
+      town: Town.empty(),
+      category: Category.empty(),
+      
+      // Caractéristiques détaillées
+      refNumber: 'N/A',
+      livingRoomsNb: 0,
+      hasInternalKitchen: false,
+      hasExternalKitchen: false,
+      hasAParking: false,
+      hasAirConditioning: false,
+      hasSecurityGuards: false,
+      hasBalcony: false,
+      
+      // Propriétaire
+      ownerId: '',
+      owner: User.empty(),
+      
+      // Localisation
+      location: [],
+      latitude: null,
+      longitude: null,
+      
+      // Services
+      waterSupply: 'not_available',
+      electricalConnection: 'not_available',
+      compartmentNumber: 0,
+      
+      // Vérification
+      hasSendVerifiedRequest: false,
+    );
+  }
+  
 
   /// Constructeur principal de la classe Property
   Property({
@@ -608,14 +669,78 @@ class Property {
   // === MÉTHODES DE PARSING JSON ===
 
   /// Factory constructor pour créer un Property à partir de données JSON
+  // factory Property.fromJson(Map<String, dynamic> json) {
+  //   return Property(
+  //     id: json['id'] as String,
+  //     title: json['title'] as String,
+  //     description: json['description'] as String? ?? 'Description non disponible.',
+  //     address: json['address'] as String? ?? 'Adresse non spécifiée',
+      
+  //     // Parsing des valeurs numériques avec gestion des nulls
+  //     monthlyPrice: (json['monthly_price'] as num?)?.toInt() ?? 0,
+  //     area: (json['area'] as num?)?.toInt() ?? 0,
+  //     roomsNb: (json['rooms_nb'] as num?)?.toInt() ?? 0,
+  //     bathroomsNb: (json['bathrooms_nb'] as num?)?.toInt() ?? 0,
+  //     livingRoomsNb: (json['living_rooms_nb'] as num?)?.toInt() ?? 0,
+  //     compartmentNumber: (json['compartment_number'] as num?)?.toInt() ?? 0,
+      
+  //     // Gestion des images
+  //     mainImage: json['main_image'] as String? ?? '',
+  //     otherImages: _parseOtherImages(json['other_images']),
+      
+  //     // Parsing des booléens avec valeurs par défaut
+  //     certified: json['certified'] as bool? ?? false,
+  //     hasInternalKitchen: json['has_internal_kitchen'] as bool? ?? false,
+  //     hasExternalKitchen: json['has_external_kitchen'] as bool? ?? false,
+  //     hasAParking: json['has_a_parking'] as bool? ?? false,
+  //     hasAirConditioning: json['has_air_conditioning'] as bool? ?? false,
+  //     hasSecurityGuards: json['has_security_guards'] as bool? ?? false,
+  //     hasBalcony: json['has_balcony'] as bool? ?? false,
+  //     hasSendVerifiedRequest: json['has_send_verified_request'] as bool? ?? false,
+      
+  //     status: json['status'] as String? ?? 'free',
+      
+  //     // Parsing des objets imbriqués
+  //     town: Town.fromJson(json['town'] as Map<String, dynamic>),
+  //     category: Category.fromJson(json['category'] as Map<String, dynamic>),
+      
+  //     refNumber: json['refnumber'] as String? ?? 'N/A',
+  //     ownerId: _parseOwnerId(json),
+  //     owner: User.fromJson(json['owner'] as Map<String, dynamic>),
+      
+  //     // Parsing de la localisation
+  //     location: _parseLocation(json['location']),
+  //     latitude: _parseLatitude(json['location']),
+  //     longitude: _parseLongitude(json['location']),
+      
+  //     // Services avec valeurs par défaut
+  //     waterSupply: json['water_supply'] as String? ?? 'not_available',
+  //     electricalConnection: json['electrical_connection'] as String? ?? 'not_available',
+  //   );
+  // }
   factory Property.fromJson(Map<String, dynamic> json) {
+    // Parse Town avec vérification
+    final town = json['town'] != null && json['town'] is Map<String, dynamic>
+        ? Town.fromJson(json['town'] as Map<String, dynamic>)
+        : Town.empty();
+
+    // Parse Category avec vérification
+    final category = json['category'] != null && json['category'] is Map<String, dynamic>
+        ? Category.fromJson(json['category'] as Map<String, dynamic>)
+        : Category.empty();
+
+    // Parse User (owner) avec vérification
+    final owner = json['owner'] != null && json['owner'] is Map<String, dynamic>
+        ? User.fromJson(json['owner'] as Map<String, dynamic>)
+        : User.empty();
+
     return Property(
-      id: json['id'] as String,
-      title: json['title'] as String,
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? 'Titre non disponible',
       description: json['description'] as String? ?? 'Description non disponible.',
       address: json['address'] as String? ?? 'Adresse non spécifiée',
       
-      // Parsing des valeurs numériques avec gestion des nulls
+      // Parsing des valeurs numériques
       monthlyPrice: (json['monthly_price'] as num?)?.toInt() ?? 0,
       area: (json['area'] as num?)?.toInt() ?? 0,
       roomsNb: (json['rooms_nb'] as num?)?.toInt() ?? 0,
@@ -627,7 +752,7 @@ class Property {
       mainImage: json['main_image'] as String? ?? '',
       otherImages: _parseOtherImages(json['other_images']),
       
-      // Parsing des booléens avec valeurs par défaut
+      // Parsing des booléens
       certified: json['certified'] as bool? ?? false,
       hasInternalKitchen: json['has_internal_kitchen'] as bool? ?? false,
       hasExternalKitchen: json['has_external_kitchen'] as bool? ?? false,
@@ -639,20 +764,20 @@ class Property {
       
       status: json['status'] as String? ?? 'free',
       
-      // Parsing des objets imbriqués
-      town: Town.fromJson(json['town'] as Map<String, dynamic>),
-      category: Category.fromJson(json['category'] as Map<String, dynamic>),
+      // Utilisation des objets parsés sécuritairement
+      town: town,
+      category: category,
       
       refNumber: json['refnumber'] as String? ?? 'N/A',
       ownerId: _parseOwnerId(json),
-      owner: User.fromJson(json['owner'] as Map<String, dynamic>),
+      owner: owner, // ← Déjà parsé avec vérification
       
       // Parsing de la localisation
       location: _parseLocation(json['location']),
       latitude: _parseLatitude(json['location']),
       longitude: _parseLongitude(json['location']),
       
-      // Services avec valeurs par défaut
+      // Services
       waterSupply: json['water_supply'] as String? ?? 'not_available',
       electricalConnection: json['electrical_connection'] as String? ?? 'not_available',
     );

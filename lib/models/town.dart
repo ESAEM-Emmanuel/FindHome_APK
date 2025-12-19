@@ -1,4 +1,3 @@
-// // lib/models/town.dart
 // class Town {
 //   final String id;
 //   final String name;
@@ -14,12 +13,35 @@
 
 //   factory Town.fromJson(Map<String, dynamic> json) {
 //     return Town(
-//       id: json['id'],
-//       name: json['name'],
-//       countryId: json['country_id'],
+//       id: json['id']?.toString() ?? '',
+//       name: json['name']?.toString() ?? '',
+//       countryId: json['country_id']?.toString() ?? '',
 //       country: Country.fromJson(json['country']),
 //     );
 //   }
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'id': id,
+//       'name': name,
+//       'country_id': countryId,
+//       'country': country.toJson(),
+//     };
+//   }
+
+//   @override
+//   String toString() {
+//     return name;
+//   }
+
+//   @override
+//   bool operator ==(Object other) {
+//     if (identical(this, other)) return true;
+//     return other is Town && other.id == id;
+//   }
+
+//   @override
+//   int get hashCode => id.hashCode;
 // }
 
 // class Country {
@@ -33,10 +55,31 @@
 
 //   factory Country.fromJson(Map<String, dynamic> json) {
 //     return Country(
-//       id: json['id'],
-//       name: json['name'],
+//       id: json['id']?.toString() ?? '',
+//       name: json['name']?.toString() ?? '',
 //     );
 //   }
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'id': id,
+//       'name': name,
+//     };
+//   }
+
+//   @override
+//   String toString() {
+//     return name;
+//   }
+
+//   @override
+//   bool operator ==(Object other) {
+//     if (identical(this, other)) return true;
+//     return other is Country && other.id == id;
+//   }
+
+//   @override
+//   int get hashCode => id.hashCode;
 // }
 
 // class TownsResponse {
@@ -51,19 +94,27 @@
 //   factory TownsResponse.fromJson(Map<String, dynamic> json) {
 //     return TownsResponse(
 //       records: (json['records'] as List)
-//           .map((item) => Town.fromJson(item))
+//           .map((item) => Town.fromJson(item as Map<String, dynamic>))
 //           .toList(),
 //       metadata: json['metadata'] ?? {},
 //     );
 //   }
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'records': records.map((town) => town.toJson()).toList(),
+//       'metadata': metadata,
+//     };
+//   }
 // }
-// lib/models/town.dart
+
 class Town {
   final String id;
   final String name;
   final String countryId;
   final Country country;
 
+  // Constructeur avec named parameters
   Town({
     required this.id,
     required this.name,
@@ -71,12 +122,26 @@ class Town {
     required this.country,
   });
 
+  // Factory pour créer un Town vide (par défaut)
+  factory Town.empty() {
+    return Town(
+      id: '',
+      name: 'Ville inconnue',
+      countryId: '',
+      country: Country.empty(),
+    );
+  }
+
+  // Factory pour parser depuis JSON
   factory Town.fromJson(Map<String, dynamic> json) {
     return Town(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       countryId: json['country_id']?.toString() ?? '',
-      country: Country.fromJson(json['country']),
+      // Protection contre les nulls
+      country: json['country'] != null && json['country'] is Map<String, dynamic>
+          ? Country.fromJson(json['country'] as Map<String, dynamic>)
+          : Country.empty(),
     );
   }
 
@@ -112,6 +177,14 @@ class Country {
     required this.id,
     required this.name,
   });
+
+  // Factory pour créer un Country vide (par défaut)
+  factory Country.empty() {
+    return Country(
+      id: '',
+      name: 'Pays inconnu',
+    );
+  }
 
   factory Country.fromJson(Map<String, dynamic> json) {
     return Country(

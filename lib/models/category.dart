@@ -66,6 +66,12 @@ class Category {
   final String id;
   final String name;
 
+  factory Category.empty() {
+    return Category(
+      id: '',
+      name: 'Catégorie non spécifiée',
+    );
+  }
   Category({required this.id, required this.name});
 
   factory Category.fromJson(Map<String, dynamic> json) {

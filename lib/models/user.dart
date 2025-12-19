@@ -438,6 +438,29 @@ class User {
     this.favorites,
     this.subscriptions,
   });
+  factory User.empty() {
+  return User(
+    id: '',
+    refnumber: '',
+    phone: '',
+    username: 'Utilisateur inconnu',
+    email: '',
+    birthday: null,
+    gender: null,
+    image: null,
+    active: false,
+    // Ajoutez ces champs si votre modèle User les a
+    role: 'user',
+    is_staff: false,
+    // town: Town.empty(), // Si vous avez un champ town dans User
+    town: town_model.Town.empty(),
+    owned_properties: [],
+    favorites: [],
+    reported_signals: [],
+    offender_signals: [],
+    subscriptions: [],
+  );
+}
 
   /// Factory constructor pour créer un User à partir de données JSON
   factory User.fromJson(Map<String, dynamic> json) {
