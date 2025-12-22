@@ -1474,7 +1474,7 @@ class _HomePageState extends State<HomePage> {
     'has_balcony': '',
     
     // Tri
-    'order': 'asc',
+    // 'order': 'asc',
   };
 
   // ==================================================================
@@ -2043,7 +2043,7 @@ class _HomePageState extends State<HomePage> {
       'town_id': '', 'category_property_id': '', 'certified': '',
       'has_internal_kitchen': '', 'has_external_kitchen': '', 'has_a_parking': '',
       'has_air_conditioning': '', 'has_security_guards': '', 'has_balcony': '',
-      'order': 'asc',
+      // 'order': 'asc',
     };
 
     // Réinitialise l'état local

@@ -12,7 +12,7 @@ class CategoryService {
   Future<List<Category>> getAllCategories() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/category_properties/'),
+        Uri.parse('$baseUrl/category_properties/?active=true'),
         headers: {'accept': 'application/json'},
       );
 
@@ -32,7 +32,7 @@ class CategoryService {
   Future<CategoryListResponse> searchCategories(String query) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/category_properties/?name=$query'),
+        Uri.parse('$baseUrl/category_properties/?name=$query&?active=true'),
         headers: {'accept': 'application/json'},
       );
 

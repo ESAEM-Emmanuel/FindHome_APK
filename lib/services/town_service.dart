@@ -10,7 +10,7 @@ class TownService {
   Future<TownsResponse> searchTowns(String query) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/towns/?name=$query'),
+        Uri.parse('$baseUrl/towns/?name=$query&?active=true'),
         headers: {
           'Accept': 'application/json',
         },
@@ -30,7 +30,7 @@ class TownService {
   Future<List<Town>> getAllTowns() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/towns/'),
+        Uri.parse('$baseUrl/towns/?active=true'),
         headers: {
           'Accept': 'application/json',
         },
